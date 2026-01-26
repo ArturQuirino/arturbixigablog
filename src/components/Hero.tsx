@@ -35,7 +35,7 @@ export default function Hero({ post }: HeroProps) {
 
       <div className="relative w-full max-w-5xl mt-12 aspect-video rounded-xl overflow-hidden shadow-2xl border border-gray-200">
          <Image
-            src={post.image || '/placeholder.png'}
+            src={post.image || '/placeholder_image.png'}
             alt={post.title}
             fill
             className="object-cover"

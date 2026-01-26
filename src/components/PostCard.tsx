@@ -11,7 +11,7 @@ export default function PostCard({ post }: Props) {
     <div className="flex flex-col overflow-hidden rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200 bg-white">
       <div className="relative h-48 w-full bg-gray-100">
         <Image
-          src={post.image || "/placeholder.png"}
+          src={post.image || "/placeholder_image.png"}
           alt={post.title}
           fill
           className="object-cover"
