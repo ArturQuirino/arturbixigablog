@@ -1,25 +1,75 @@
-import Link from 'next/link';
-import { PostData } from '@/lib/posts';
-import { format, parseISO } from 'date-fns';
+import Link from "next/link";
+import Image from "next/image";
+import { PostData } from "@/lib/posts";
 
-export default function PostCard({ post }: { post: PostData }) {
+interface Props {
+  post: PostData;
+}
+
+export default function PostCard({ post }: Props) {
   return (
-    <article className="group relative flex flex-col space-y-2">
-      <div className="flex items-center gap-2 text-sm text-gray-500">
-        <time dateTime={post.date}>{format(parseISO(post.date), 'LLLL d, yyyy')}</time>
+    <div className="flex flex-col overflow-hidden rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200 bg-white">
+      <div className="relative h-48 w-full bg-gray-100">
+        <Image
+          src={post.image || "/placeholder.png"}
+          alt={post.title}
+          fill
+          className="object-cover"
+        />
+        {/* Optional: Add a category badge if available in post data */}
+        {/* <div className="absolute top-4 left-4">
+          <span className="px-2 py-1 text-xs font-bold tracking-wider uppercase bg-white rounded text-gray-800">
+            Category
+          </span>
+        </div> */}
       </div>
-      <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100 group-hover:text-blue-600 transition-colors">
-        <Link href={`/posts/${post.slug}`}>
-          <span className="absolute inset-0" />
-          {post.title}
+      <div className="flex flex-col flex-1 p-6">
+        <div className="flex items-center text-xs text-gray-500 mb-3">
+          <time dateTime={post.date}>
+            {new Date(post.date).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            })}
+          </time>
+          {post.readTime && (
+            <>
+              <span className="mx-1">&middot;</span>
+              <span>{post.readTime}</span>
+            </>
+          )}
+        </div>
+        <Link href={`/posts/${post.slug}`} className="block mt-2">
+          <h3 className="text-xl font-semibold text-gray-900 hover:text-purple-600 transition-colors">
+            {post.title}
+          </h3>
         </Link>
-      </h2>
-      <p className="text-gray-600 dark:text-gray-400 line-clamp-3">
-        {post.excerpt}
-      </p>
-      <div className="text-sm font-medium text-blue-600 pt-2">
-        Read more →
+        <p className="mt-3 text-base text-gray-500 line-clamp-3 flex-1">
+          {post.excerpt}
+        </p>
+        <div className="mt-6">
+          <Link
+            href={`/posts/${post.slug}`}
+            className="text-sm font-medium text-purple-600 hover:text-purple-500 flex items-center"
+          >
+            Read Analysis
+            <svg
+              className="w-4 h-4 ml-1"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M14 5l7 7m0 0l-7 7m7-7H3"
+              />
+            </svg>
+          </Link>
+        </div>
       </div>
-    </article>
+    </div>
   );
 }

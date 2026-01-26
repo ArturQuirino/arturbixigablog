@@ -10,6 +10,8 @@ export interface PostData {
   date: string;
   excerpt: string;
   content: string;
+  image?: string;
+  readTime?: string;
 }
 
 export function getSortedPostsData(): PostData[] {
@@ -29,7 +31,7 @@ export function getSortedPostsData(): PostData[] {
     // Combine the data with the id
     return {
       slug,
-      ...(matterResult.data as { title: string; date: string; excerpt: string }),
+      ...(matterResult.data as { title: string; date: string; excerpt: string; image?: string; readTime?: string }),
       content: matterResult.content,
     };
   });
@@ -52,7 +54,7 @@ export function getPostData(slug: string): PostData {
 
   return {
     slug,
-    ...(matterResult.data as { title: string; date: string; excerpt: string }),
+    ...(matterResult.data as { title: string; date: string; excerpt: string; image?: string; readTime?: string }),
     content: matterResult.content,
   };
 }
