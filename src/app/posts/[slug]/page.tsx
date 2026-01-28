@@ -20,6 +20,21 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
+import { Callout } from "@/components/ui/callout";
+import { CodeBlock } from "@/components/ui/code-block";
+import { Card } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+const components = {
+  Callout,
+  CodeBlock,
+  Card,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+};
+
 export default async function Post({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const post = getPostData(slug);
@@ -42,7 +57,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
         </time>
       </div>
       <div className="prose prose-lg dark:prose-invert max-w-none">
-        <MDXRemote source={post.content} />
+        <MDXRemote source={post.content} components={components} />
       </div>
     </article>
   );
