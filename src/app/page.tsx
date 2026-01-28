@@ -2,6 +2,7 @@ import { getSortedPostsData } from "@/lib/posts";
 import PostCard from "@/components/PostCard";
 import Hero from "@/components/Hero";
 import Link from "next/link";
+import { Analytics } from "@vercel/analytics/next"
 
 export default function Home() {
   const allPostsData = getSortedPostsData();
