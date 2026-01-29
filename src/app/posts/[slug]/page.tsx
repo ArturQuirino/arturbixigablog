@@ -41,7 +41,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
 
   return (
     <article className="mx-auto">
-      <div className="mb-8">
+      <div className="mb-8 flex gap-2 flex-col">
         <Link
           href="/"
           className="inline-flex items-center text-sm text-gray-500 hover:text-blue-600 transition-colors mb-4"
@@ -49,9 +49,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
           <ArrowLeft className="w-4 h-4 mr-1" />
           Back to blog
         </Link>
-        <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl mb-2">
-          {post.title}
-        </h1>
+
         <time className="text-gray-500" dateTime={post.date}>
           {format(parseISO(post.date), "LLLL d, yyyy")}
         </time>

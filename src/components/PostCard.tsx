@@ -8,7 +8,7 @@ interface Props {
 
 export default function PostCard({ post }: Props) {
   return (
-    <div className="flex flex-col overflow-hidden rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200 bg-white">
+    <Link href={`/posts/${post.slug}`} className="flex flex-col overflow-hidden rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200 bg-white group">
       <div className="relative h-48 w-full bg-gray-100">
         <Image
           src={post.image || "/placeholder_image.png"}
@@ -39,18 +39,17 @@ export default function PostCard({ post }: Props) {
             </>
           )}
         </div>
-        <Link href={`/posts/${post.slug}`} className="block mt-2">
-          <h3 className="text-xl font-semibold text-gray-900 hover:text-purple-600 transition-colors">
+        <div className="block mt-2">
+          <h3 className="text-xl font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">
             {post.title}
           </h3>
-        </Link>
+        </div>
         <p className="mt-3 text-base text-gray-500 line-clamp-3 flex-1">
           {post.excerpt}
         </p>
         <div className="mt-6">
-          <Link
-            href={`/posts/${post.slug}`}
-            className="text-sm font-medium text-purple-600 hover:text-purple-500 flex items-center"
+          <div
+            className="text-sm font-medium text-purple-600 group-hover:text-purple-500 flex items-center"
           >
             Read Analysis
             <svg
@@ -67,9 +66,9 @@ export default function PostCard({ post }: Props) {
                 d="M14 5l7 7m0 0l-7 7m7-7H3"
               />
             </svg>
-          </Link>
+          </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

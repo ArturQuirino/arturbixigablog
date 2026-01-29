@@ -15,9 +15,11 @@ export default function Hero({ post }: HeroProps) {
             Engineering Notebook
           </span>
         </div>
-        <h1 className="text-5xl font-extrabold tracking-tight text-gray-900 sm:text-6xl">
-          Visual Architecture for <br />
-          <span className="text-purple-600">Senior Developers</span>
+        <h1 className="text-5xl font-extrabold tracking-tight text-gray-900 sm:text-6xl hover:text-purple-600 transition-colors">
+          <Link href={`/posts/${post.slug}`}>
+            Visual Architecture for <br />
+            <span className="text-purple-600">Senior Developers</span>
+          </Link>
         </h1>
         <p className="text-xl text-gray-500 max-w-2xl mx-auto">
           I turn complex concepts into simple mental models. <br />
@@ -33,19 +35,19 @@ export default function Hero({ post }: HeroProps) {
         </div>
       </div>
 
-      <div className="relative w-full max-w-5xl mt-12 aspect-video rounded-xl overflow-hidden shadow-2xl border border-gray-200">
+      <Link href={`/posts/${post.slug}`} className="relative w-full max-w-5xl mt-12 aspect-video rounded-xl overflow-hidden shadow-2xl border border-gray-200 block group">
          <Image
             src={post.image || '/placeholder_image.png'}
             alt={post.title}
             fill
-            className="object-cover"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
             priority
           />
           <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent text-white text-left">
-            <h2 className="text-2xl font-bold">{post.title}</h2>
+            <h2 className="text-2xl font-bold group-hover:text-purple-200 transition-colors">{post.title}</h2>
             <p className="mt-2 text-gray-200 line-clamp-2">{post.excerpt}</p>
           </div>
-      </div>
+      </Link>
     </section>
   );
 }
