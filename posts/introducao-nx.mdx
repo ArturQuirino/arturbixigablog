@@ -5,6 +5,7 @@ author: "Artur Quirino"
 publishedAt: "2024"
 date: '2025-10-13'
 tags: ["nx", "angular", "monorepo", "arquitetura", "performance"]
+image: "/covers/introducao-nx.png"
 ---
 
 import { Callout } from '@/components/ui/callout'
@@ -23,7 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 ---
 
-## O Que É o Nx?
+## O Que é o Nx?
 
 <Callout type="info" className="my-6">
 **O Nx não é um substituto para o Angular CLI** — é um sistema de build poderoso e extensível projetado para turbiná-lo.
@@ -31,7 +32,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 Desenvolvido pela **Nrwl**, uma empresa fundada por ex-membros da equipe Angular, o Nx nasceu da necessidade de resolver exatamente esses desafios de escalabilidade em nível corporativo. Em sua essência, o Nx é um conjunto de ferramentas para desenvolvedores que fornece:
 
-<div className="grid md:grid-cols-3 gap-4 my-8">
+<div className="grid md:grid-cols-3 gap-4 my-8 not-prose">
   <Card className="p-6">
     <h3 className="font-bold text-lg mb-2">🎯 Orquestração Inteligente</h3>
     <p className="text-sm text-muted-foreground">Gerenciamento avançado de tarefas e dependências</p>
@@ -72,7 +73,7 @@ Um **monorepo inteligente**, como facilitado pelo Nx, é muito mais sofisticado.
 ### Os Três Pilares do Monorepo Inteligente
 
 <Tabs defaultValue="atomic" className="my-8">
-  <TabsList className="grid w-full grid-cols-3">
+  <TabsList>
     <TabsTrigger value="atomic">Mudanças Atômicas</TabsTrigger>
     <TabsTrigger value="sharing">Compartilhamento</TabsTrigger>
     <TabsTrigger value="dependencies">Dependências</TabsTrigger>

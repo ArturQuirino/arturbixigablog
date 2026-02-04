@@ -34,7 +34,7 @@ export function Callout({ type = "info", className, children, ...props }: Callou
       {...props}
     >
       <Icon className="h-5 w-5 shrink-0 mt-0.5" />
-      <span className="text-sm [&>p]:leading-relaxed block">{children}</span>
+      <div className="text-sm [&>p]:leading-relaxed">{children}</div>
     </div>
   )
 }
