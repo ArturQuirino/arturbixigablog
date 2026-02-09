@@ -11,7 +11,7 @@ image: "/covers/introducao-nx.png"
 import { Callout } from '@/components/ui/callout'
 import { CodeBlock } from '@/components/ui/code-block'
 import { Card } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+
 
 <div className="article-hero">
   <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
@@ -72,43 +72,23 @@ Um **monorepo inteligente**, como facilitado pelo Nx, é muito mais sofisticado.
 
 ### Os Três Pilares do Monorepo Inteligente
 
-<Tabs defaultValue="atomic" className="my-8">
-  <TabsList>
-    <TabsTrigger value="atomic">Mudanças Atômicas</TabsTrigger>
-    <TabsTrigger value="sharing">Compartilhamento</TabsTrigger>
-    <TabsTrigger value="dependencies">Dependências</TabsTrigger>
-  </TabsList>
-  
-  <TabsContent value="atomic" className="space-y-4">
-    <h4 className="font-bold text-lg">🔄 Mudanças Atômicas</h4>
-    <p>
-      Este é talvez o conceito mais poderoso. Em um monorepo Nx, você pode refatorar uma biblioteca de componentes compartilhada, atualizar a API backend que a alimenta e modificar todas as aplicações frontend que a consomem **dentro de um único commit**.
-    </p>
-    <p className="text-sm text-muted-foreground">
-      Isso elimina o inferno de versionamento e a sobrecarga de coordenação de configurações multi-repo, garantindo que o sistema inteiro esteja sempre em um estado consistente.
-    </p>
-  </TabsContent>
-  
-  <TabsContent value="sharing" className="space-y-4">
-    <h4 className="font-bold text-lg">🔗 Compartilhamento Perfeito de Código</h4>
-    <p>
-      Reutilizar componentes, serviços, tipos e lógica de validação em múltiplas aplicações (até mesmo entre frontend e backend) torna-se **trivial**.
-    </p>
-    <p className="text-sm text-muted-foreground">
-      Não há necessidade de publicar e gerenciar pacotes NPM privados; você simplesmente importa o código. Isso reduz drasticamente a duplicação e melhora a consistência.
-    </p>
-  </TabsContent>
-  
-  <TabsContent value="dependencies" className="space-y-4">
-    <h4 className="font-bold text-lg">📦 Gerenciamento Simplificado de Dependências</h4>
-    <p>
-      O Nx encoraja fortemente uma **política de versão única**, onde todas as dependências de terceiros para todo o workspace são gerenciadas em um único arquivo <code>package.json</code> raiz.
-    </p>
-    <p className="text-sm text-muted-foreground">
-      Isso elimina conflitos de versão entre projetos e garante que todas as partes do seu sistema sejam construídas e testadas contra exatamente o mesmo conjunto de dependências.
-    </p>
-  </TabsContent>
-</Tabs>
+#### 🔄 Mudanças Atômicas
+
+Este é talvez o conceito mais poderoso. Em um monorepo Nx, você pode refatorar uma biblioteca de componentes compartilhada, atualizar a API backend que a alimenta e modificar todas as aplicações frontend que a consomem **dentro de um único commit**.
+
+Isso elimina o inferno de versionamento e a sobrecarga de coordenação de configurações multi-repo, garantindo que o sistema inteiro esteja sempre em um estado consistente.
+
+#### 🔗 Compartilhamento Perfeito de Código
+
+Reutilizar componentes, serviços, tipos e lógica de validação em múltiplas aplicações (até mesmo entre frontend e backend) torna-se **trivial**.
+
+Não há necessidade de publicar e gerenciar pacotes NPM privados; você simplesmente importa o código. Isso reduz drasticamente a duplicação e melhora a consistência.
+
+#### 📦 Gerenciamento Simplificado de Dependências
+
+O Nx encoraja fortemente uma **política de versão única**, onde todas as dependências de terceiros para todo o workspace são gerenciadas em um único arquivo `package.json` raiz.
+
+Isso elimina conflitos de versão entre projetos e garante que todas as partes do seu sistema sejam construídas e testadas contra exatamente o mesmo conjunto de dependências.
 
 ---
 
@@ -423,34 +403,21 @@ Além dos recursos poderosos para desempenho e arquitetura, o Nx fornece melhori
 
 ### Nx vs. Angular CLI
 
-<Tabs defaultValue="angular-cli" className="my-8">
-  <TabsList className="grid w-full grid-cols-2">
-    <TabsTrigger value="angular-cli">Angular CLI</TabsTrigger>
-    <TabsTrigger value="nx">Nx (CLI Aprimorado)</TabsTrigger>
-  </TabsList>
-  
-  <TabsContent value="angular-cli" className="space-y-3">
-    <h4 className="font-semibold">✅ Angular CLI Fornece:</h4>
-    <ul className="space-y-2 text-sm">
-      <li>→ Base sólida para criar aplicações</li>
-      <li>→ Gerar componentes e serviços</li>
-      <li>→ Executar builds, testes e dev server</li>
-      <li>→ Ferramentas essenciais de desenvolvimento</li>
-    </ul>
-  </TabsContent>
-  
-  <TabsContent value="nx" className="space-y-3">
-    <h4 className="font-semibold">🚀 Nx Adiciona Por Cima:</h4>
-    <ul className="space-y-2 text-sm">
-      <li>✓ Suporte de primeira classe a monorepo</li>
-      <li>✓ Grafo de projeto interativo para visualização</li>
-      <li>✓ Comandos "affected" revolucionários</li>
-      <li>✓ Cache de computação local e remoto</li>
-      <li>✓ Limites de módulo aplicados automaticamente</li>
-      <li>✓ Cadeia de ferramentas pré-configurada e integrada</li>
-    </ul>
-  </TabsContent>
-</Tabs>
+#### ✅ Angular CLI Fornece:
+
+- Base sólida para criar aplicações
+- Gerar componentes e serviços
+- Executar builds, testes e dev server
+- Ferramentas essenciais de desenvolvimento
+
+#### 🚀 Nx Adiciona Por Cima:
+
+- Suporte de primeira classe a monorepo
+- Grafo de projeto interativo para visualização
+- Comandos "affected" revolucionários
+- Cache de computação local e remoto
+- Limites de módulo aplicados automaticamente
+- Cadeia de ferramentas pré-configurada e integrada
 
 ### Baterias Incluídas
 
