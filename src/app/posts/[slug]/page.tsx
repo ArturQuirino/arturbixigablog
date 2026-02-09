@@ -1,6 +1,7 @@
 import { getPostData, getSortedPostsData } from "@/lib/posts";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import Link from "next/link";
+import Image from "next/image";
 import { format, parseISO } from "date-fns";
 import { ArrowLeft } from "lucide-react";
 
@@ -54,6 +55,18 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
           {format(parseISO(post.date), "LLLL d, yyyy")}
         </time>
       </div>
+
+      {post.image && (
+        <div className="relative w-full h-64 md:h-96 mb-8 rounded-xl overflow-hidden bg-gray-100 border border-gray-200 shadow-sm">
+          <Image
+            src={post.image}
+            alt={post.title}
+            fill
+            className="object-cover"
+            priority
+          />
+        </div>
+      )}
       <div className="prose prose-lg dark:prose-invert max-w-none">
         <MDXRemote source={post.content} components={components} />
       </div>
