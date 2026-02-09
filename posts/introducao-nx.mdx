@@ -10,17 +10,10 @@ image: "/covers/introducao-nx.png"
 
 import { Callout } from '@/components/ui/callout'
 import { CodeBlock } from '@/components/ui/code-block'
-import { Card } from '@/components/ui/card'
 
+# Apresentando o Nx: O Sistema de Build para Profissionais
 
-<div className="article-hero">
-  <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-    Apresentando o Nx: O Sistema de Build para Profissionais
-  </h1>
-  <p className="text-xl text-muted-foreground max-w-3xl">
-    Uma solução abrangente que transforma a maneira como você constrói, escala e mantém aplicações Angular de nível corporativo
-  </p>
-</div>
+Uma solução abrangente que transforma a maneira como você constrói, escala e mantém aplicações Angular de nível corporativo.
 
 ---
 
@@ -32,22 +25,9 @@ import { Card } from '@/components/ui/card'
 
 Desenvolvido pela **Nrwl**, uma empresa fundada por ex-membros da equipe Angular, o Nx nasceu da necessidade de resolver exatamente esses desafios de escalabilidade em nível corporativo. Em sua essência, o Nx é um conjunto de ferramentas para desenvolvedores que fornece:
 
-<div className="grid md:grid-cols-3 gap-4 my-8 not-prose">
-  <Card className="p-6">
-    <h3 className="font-bold text-lg mb-2">🎯 Orquestração Inteligente</h3>
-    <p className="text-sm text-muted-foreground">Gerenciamento avançado de tarefas e dependências</p>
-  </Card>
-  
-  <Card className="p-6">
-    <h3 className="font-bold text-lg mb-2">⚡ Geração de Código</h3>
-    <p className="text-sm text-muted-foreground">Scaffolding automático e consistente</p>
-  </Card>
-  
-  <Card className="p-6">
-    <h3 className="font-bold text-lg mb-2">💾 Cache Sofisticado</h3>
-    <p className="text-sm text-muted-foreground">Sistema de cache de computação distribuído</p>
-  </Card>
-</div>
+*   **🎯 Orquestração Inteligente**: Gerenciamento avançado de tarefas e dependências
+*   **⚡ Geração de Código**: Scaffolding automático e consistente
+*   **💾 Cache Sofisticado**: Sistema de cache de computação distribuído
 
 ### Além dos Monorepos
 
@@ -96,39 +76,23 @@ Isso elimina conflitos de versão entre projetos e garante que todas as partes d
 
 Para gerenciar essa base de código unificada, o Nx fornece uma estrutura de projeto clara e opinativa que é fundamental para sua filosofia.
 
-<div className="grid md:grid-cols-2 gap-6 my-8">
-  <Card className="p-6 border-2 border-blue-500">
-    <div className="flex items-center gap-3 mb-4">
-      <div className="text-3xl">📱</div>
-      <h3 className="font-bold text-xl">apps/</h3>
-    </div>
-    <p className="text-muted-foreground mb-4">
-      Qualquer coisa que seja <strong>implantável</strong>
-    </p>
-    <ul className="space-y-2 text-sm">
-      <li>✓ Aplicações web Angular</li>
-      <li>✓ Testes end-to-end</li>
-      <li>✓ Servidores backend</li>
-      <li>✓ Camadas finas de configuração</li>
-    </ul>
-  </Card>
-  
-  <Card className="p-6 border-2 border-purple-500">
-    <div className="flex items-center gap-3 mb-4">
-      <div className="text-3xl">📚</div>
-      <h3 className="font-bold text-xl">libs/</h3>
-    </div>
-    <p className="text-muted-foreground mb-4">
-      Onde a <strong>grande maioria do código</strong> deve viver
-    </p>
-    <ul className="space-y-2 text-sm">
-      <li>✓ Componentes de UI reutilizáveis</li>
-      <li>✓ Lógica de negócios</li>
-      <li>✓ Serviços de acesso a dados</li>
-      <li>✓ Funções utilitárias</li>
-    </ul>
-  </Card>
-</div>
+### 📱 apps/
+
+Qualquer coisa que seja **implantável**.
+
+*   ✓ Aplicações web Angular
+*   ✓ Testes end-to-end
+*   ✓ Servidores backend
+*   ✓ Camadas finas de configuração
+
+### 📚 libs/
+
+Onde a **grande maioria do código** deve viver.
+
+*   ✓ Componentes de UI reutilizáveis
+*   ✓ Lógica de negócios
+*   ✓ Serviços de acesso a dados
+*   ✓ Funções utilitárias
 
 <Callout type="warning" className="my-6">
 **Princípio Fundamental**: As aplicações na pasta `apps` devem ser camadas finas, primariamente responsáveis por configuração, injeção de dependência e bootstrap. O trabalho pesado deve ser encapsulado dentro de bibliotecas bem definidas na pasta `libs`.
@@ -153,51 +117,10 @@ nx generate @nx/angular:library my-lib`}
 
 Para organizar ainda mais a pasta `libs`, é uma boa prática categorizar as bibliotecas por sua função. Essa separação semântica cria uma arquitetura clara e escalável.
 
-<div className="grid md:grid-cols-2 gap-4 my-8">
-  <Card className="p-5">
-    <div className="flex items-center gap-2 mb-3">
-      <span className="text-2xl">🎨</span>
-      <h4 className="font-bold">Feature Libraries</h4>
-    </div>
-    <p className="text-sm text-muted-foreground mb-2">
-      Implementam UI "inteligente" para casos de uso específicos
-    </p>
-    <code className="text-xs bg-muted px-2 py-1 rounded">type:feature</code>
-  </Card>
-  
-  <Card className="p-5">
-    <div className="flex items-center gap-2 mb-3">
-      <span className="text-2xl">🎭</span>
-      <h4 className="font-bold">UI Libraries</h4>
-    </div>
-    <p className="text-sm text-muted-foreground mb-2">
-      Componentes puramente de apresentação ou "burros"
-    </p>
-    <code className="text-xs bg-muted px-2 py-1 rounded">type:ui</code>
-  </Card>
-  
-  <Card className="p-5">
-    <div className="flex items-center gap-2 mb-3">
-      <span className="text-2xl">🔌</span>
-      <h4 className="font-bold">Data-Access Libraries</h4>
-    </div>
-    <p className="text-sm text-muted-foreground mb-2">
-      Responsáveis por interações com fontes de dados externas
-    </p>
-    <code className="text-xs bg-muted px-2 py-1 rounded">type:data-access</code>
-  </Card>
-  
-  <Card className="p-5">
-    <div className="flex items-center gap-2 mb-3">
-      <span className="text-2xl">🛠️</span>
-      <h4 className="font-bold">Utility Libraries</h4>
-    </div>
-    <p className="text-sm text-muted-foreground mb-2">
-      Funções comuns e transversais usadas em qualquer lugar
-    </p>
-    <code className="text-xs bg-muted px-2 py-1 rounded">type:util</code>
-  </Card>
-</div>
+*   **🎨 Feature Libraries** (`type:feature`): Implementam UI "inteligente" para casos de uso específicos.
+*   **🎭 UI Libraries** (`type:ui`): Componentes puramente de apresentação ou "burros".
+*   **🔌 Data-Access Libraries** (`type:data-access`): Responsáveis por interações com fontes de dados externas.
+*   **🛠️ Utility Libraries** (`type:util`): Funções comuns e transversais usadas em qualquer lugar.
 
 <Callout type="info">
 **Padrão Arquitetural**: Essa estrutura de apps versus libs fundamentalmente desacopla "o que o código faz" (as bibliotecas) de "como o código é implantado" (as aplicações). Uma biblioteca escrita na pasta `libs` é inerentemente **agnóstica de contexto**.
@@ -209,25 +132,9 @@ Para organizar ainda mais a pasta `libs`, é uma boa prática categorizar as bib
 
 O desempenho notável do Nx não é mágica; é o resultado de três sistemas interconectados e inteligentes trabalhando em conjunto:
 
-<div className="flex flex-col md:flex-row gap-4 my-8">
-  <div className="flex-1 p-6 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 rounded-lg">
-    <div className="text-4xl mb-3">🕸️</div>
-    <h3 className="font-bold text-lg mb-2">Grafo de Dependências</h3>
-    <p className="text-sm">Análise estática completa do workspace</p>
-  </div>
-  
-  <div className="flex-1 p-6 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 rounded-lg">
-    <div className="text-4xl mb-3">💾</div>
-    <h3 className="font-bold text-lg mb-2">Cache de Computação</h3>
-    <p className="text-sm">Nunca fazer o mesmo trabalho duas vezes</p>
-  </div>
-  
-  <div className="flex-1 p-6 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 rounded-lg">
-    <div className="text-4xl mb-3">🎯</div>
-    <h3 className="font-bold text-lg mb-2">Comandos "Affected"</h3>
-    <p className="text-sm">Execução cirúrgica e seletiva</p>
-  </div>
-</div>
+*   **🕸️ Grafo de Dependências**: Análise estática completa do workspace.
+*   **💾 Cache de Computação**: Nunca fazer o mesmo trabalho duas vezes.
+*   **🎯 Comandos "Affected"**: Execução cirúrgica e seletiva.
 
 ### 1. O Grafo de Dependências: O Olho Que Tudo Vê
 
@@ -252,32 +159,20 @@ Este grafo não é apenas um mecanismo interno; é uma ferramenta poderosa para 
 
 Antes de executar qualquer tarefa cacheável, o Nx calcula um **"hash de computação"** único, derivado de:
 
-<ul className="space-y-2 my-4">
-  <li>✓ Código-fonte do projeto e todas as dependências</li>
-  <li>✓ Arquivos de configuração global (tsconfig.base.json)</li>
-  <li>✓ Versões de pacotes npm externos</li>
-  <li>✓ Detalhes do ambiente de execução</li>
-  <li>✓ Flags de linha de comando específicas</li>
-</ul>
+*   ✓ Código-fonte do projeto e todas as dependências
+*   ✓ Arquivos de configuração global (tsconfig.base.json)
+*   ✓ Versões de pacotes npm externos
+*   ✓ Detalhes do ambiente de execução
+*   ✓ Flags de linha de comando específicas
 
 #### Nx Cloud: Cache Distribuído
 
-<div className="bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-950 dark:to-blue-950 p-6 rounded-lg my-6">
-  <h4 className="font-bold text-lg mb-3">☁️ Poder Amplificado com Nx Cloud</h4>
-  <p className="mb-4">
-    Com o Nx Cloud, toda a equipe e o servidor de CI compartilham um único **cache distribuído**.
-  </p>
-  <div className="grid md:grid-cols-2 gap-4 text-sm">
-    <div>
-      <strong>Desenvolvedor constrói projeto</strong>
-      <p className="text-muted-foreground">Resultado é enviado ao cache remoto</p>
-    </div>
-    <div>
-      <strong>CI tenta construir mesmo commit</strong>
-      <p className="text-muted-foreground">Baixa resultado em segundos</p>
-    </div>
-  </div>
-</div>
+**☁️ Poder Amplificado com Nx Cloud**
+
+Com o Nx Cloud, toda a equipe e o servidor de CI compartilham um único **cache distribuído**.
+
+*   **Desenvolvedor constrói projeto**: Resultado é enviado ao cache remoto.
+*   **CI tenta construir mesmo commit**: Baixa resultado em segundos.
 
 ### 3. Comandos "Affected": Execução Cirúrgica
 
@@ -294,20 +189,15 @@ nx affected:build
 nx affected:graph`}
 </CodeBlock>
 
-<div className="my-8 p-6 border-l-4 border-green-500 bg-green-50 dark:bg-green-950">
-  <h4 className="font-bold mb-2">📊 Exemplo Prático</h4>
-  <p className="text-sm mb-3">
-    Em um workspace com <strong>dezenas de aplicações</strong> e <strong>centenas de bibliotecas</strong>, mudar uma única função utilitária pode afetar apenas:
-  </p>
-  <ul className="text-sm space-y-1">
-    <li>→ Essa biblioteca</li>
-    <li>→ Duas outras bibliotecas que a importam</li>
-    <li>→ Uma aplicação que usa uma dessas bibliotecas</li>
-  </ul>
-  <p className="text-sm mt-3 font-semibold text-green-700 dark:text-green-300">
-    Resultado: Testes executados apenas em 4 projetos, ignorando todo o resto!
-  </p>
-</div>
+**📊 Exemplo Prático**
+
+Em um workspace com **dezenas de aplicações** e **centenas de bibliotecas**, mudar uma única função utilitária pode afetar apenas:
+
+*   → Essa biblioteca
+*   → Duas outras bibliotecas que a importam
+*   → Uma aplicação que usa uma dessas bibliotecas
+
+**Resultado**: Testes executados apenas em 4 projetos, ignorando todo o resto!
 
 <Callout type="success">
 **Ciclo Virtuoso**: Essa combinação pode reduzir tempos de CI de **horas para minutos**, removendo o atrito que encoraja PRs grandes e arriscados. Com o Nx, PRs menores e mais frequentes tornam-se a norma.
@@ -332,28 +222,9 @@ Tags são identificadores de string simples que você adiciona ao arquivo de con
 
 #### Estratégia Prática de Tagging
 
-<div className="grid md:grid-cols-3 gap-4 my-6">
-  <Card className="p-4">
-    <code className="text-xs bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded block mb-2">
-      type:ui + scope:shared
-    </code>
-    <p className="text-sm text-muted-foreground">Biblioteca de UI compartilhada</p>
-  </Card>
-  
-  <Card className="p-4">
-    <code className="text-xs bg-purple-100 dark:bg-purple-900 px-2 py-1 rounded block mb-2">
-      type:data-access + scope:products
-    </code>
-    <p className="text-sm text-muted-foreground">Data-access do domínio produtos</p>
-  </Card>
-  
-  <Card className="p-4">
-    <code className="text-xs bg-green-100 dark:bg-green-900 px-2 py-1 rounded block mb-2">
-      type:feature + scope:checkout
-    </code>
-    <p className="text-sm text-muted-foreground">Feature do processo de checkout</p>
-  </Card>
-</div>
+*   `type:ui + scope:shared`: Biblioteca de UI compartilhada
+*   `type:data-access + scope:products`: Data-access do domínio produtos
+*   `type:feature + scope:checkout`: Feature do processo de checkout
 
 ### Aplicando Regras com ESLint
 
@@ -376,20 +247,11 @@ Uma vez que seus projetos estão marcados, você pode aplicar regras de dependê
 ]`}
 </CodeBlock>
 
-<div className="my-8 p-6 bg-amber-50 dark:bg-amber-950 border-l-4 border-amber-500">
-  <h4 className="font-bold mb-3">🛡️ Regras Arquiteturais Codificadas</h4>
-  <ul className="space-y-2 text-sm">
-    <li>
-      <strong>Isolamento de Domínio:</strong> Um projeto "products" não pode importar código de "checkout" aleatoriamente
-    </li>
-    <li>
-      <strong>Separação de Camadas:</strong> Uma biblioteca "UI" é proibida de depender de "data-access"
-    </li>
-    <li>
-      <strong>Feedback Imediato:</strong> Erros detectados em tempo real na IDE
-    </li>
-  </ul>
-</div>
+**🛡️ Regras Arquiteturais Codificadas**
+
+*   **Isolamento de Domínio:** Um projeto "products" não pode importar código de "checkout" aleatoriamente
+*   **Separação de Camadas:** Uma biblioteca "UI" é proibida de depender de "data-access"
+*   **Feedback Imediato:** Erros detectados em tempo real na IDE
 
 <Callout type="info">
 **Transformação da Governança**: Diagramas abstratos de quadro branco tornam-se **regras vivas e verificáveis** incorporadas diretamente na base de código. A configuração do ESLint torna-se a única fonte de verdade para a arquitetura de alto nível.
@@ -423,25 +285,9 @@ Além dos recursos poderosos para desempenho e arquitetura, o Nx fornece melhori
 
 Um novo workspace Nx vem com ferramentas modernas pré-configuradas:
 
-<div className="grid md:grid-cols-3 gap-4 my-6">
-  <Card className="p-5 text-center">
-    <div className="text-3xl mb-2">🃏</div>
-    <h4 className="font-bold">Jest</h4>
-    <p className="text-xs text-muted-foreground">Testes unitários rápidos e eficientes</p>
-  </Card>
-  
-  <Card className="p-5 text-center">
-    <div className="text-3xl mb-2">🌲</div>
-    <h4 className="font-bold">Cypress</h4>
-    <p className="text-xs text-muted-foreground">Testes E2E confiáveis e poderosos</p>
-  </Card>
-  
-  <Card className="p-5 text-center">
-    <div className="text-3xl mb-2">💅</div>
-    <h4 className="font-bold">Prettier</h4>
-    <p className="text-xs text-muted-foreground">Formatação consistente de código</p>
-  </Card>
-</div>
+*   **🃏 Jest**: Testes unitários rápidos e eficientes
+*   **🌲 Cypress**: Testes E2E confiáveis e poderosos
+*   **💅 Prettier**: Formatação consistente de código
 
 ### Geração Poderosa de Código
 
@@ -466,49 +312,18 @@ nx generate @nx/nest:application api`}
 
 ## Conclusão: A Escolha do Profissional
 
-<div className="my-8 p-8 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950 dark:via-purple-950 dark:to-pink-950 rounded-xl border-2 border-blue-200 dark:border-blue-800">
-  <h3 className="text-2xl font-bold mb-4">Por Que o Nx é a Escolha do Profissional para Angular</h3>
-  
-  <p className="mb-6">
-    A jornada de uma aplicação Angular em crescimento é de complexidade crescente. Enquanto o Angular CLI fornece um excelente ponto de partida, <strong>escalar efetivamente requer um sistema de build mais poderoso e inteligente</strong>.
-  </p>
+### Por Que o Nx é a Escolha do Profissional para Angular
 
-  <div className="grid md:grid-cols-3 gap-4 mb-6">
-    <div className="p-4 bg-white dark:bg-gray-900 rounded-lg">
-      <div className="text-3xl mb-2">⚡</div>
-      <h4 className="font-bold mb-2">Rápidas</h4>
-      <p className="text-sm text-muted-foreground">
-        Cache inteligente e comandos "affected" que só executam trabalho necessário
-      </p>
-    </div>
-    
-    <div className="p-4 bg-white dark:bg-gray-900 rounded-lg">
-      <div className="text-3xl mb-2">📈</div>
-      <h4 className="font-bold mb-2">Escaláveis</h4>
-      <p className="text-sm text-muted-foreground">
-        Estrutura modular e grafo de dependências que fornece clareza e controle
-      </p>
-    </div>
-    
-    <div className="p-4 bg-white dark:bg-gray-900 rounded-lg">
-      <div className="text-3xl mb-2">🛡️</div>
-      <h4 className="font-bold mb-2">Manuteníveis</h4>
-      <p className="text-sm text-muted-foreground">
-        Limites arquiteturais aplicados automaticamente que previnem dívida técnica
-      </p>
-    </div>
-  </div>
+A jornada de uma aplicação Angular em crescimento é de complexidade crescente. Enquanto o Angular CLI fornece um excelente ponto de partida, **escalar efetivamente requer um sistema de build mais poderoso e inteligente**.
 
-  <Callout type="info">
-    <strong>Investimento Estratégico:</strong> Adotar o Nx é mais do que uma escolha de ferramentas; é um investimento na saúde a longo prazo de seus projetos e na produtividade de sua equipe.
-  </Callout>
-</div>
+*   **⚡ Rápidas**: Cache inteligente e comandos "affected" que só executam trabalho necessário
+*   **📈 Escaláveis**: Estrutura modular e grafo de dependências que fornece clareza e controle
+*   **🛡️ Manuteníveis**: Limites arquiteturais aplicados automaticamente que previnem dívida técnica
 
-<div className="text-center mt-12 p-6 border-t">
-  <p className="text-lg font-semibold mb-2">
-    O Nx fornece a fundação e os trilhos de segurança necessários para construir aplicações de nível corporativo com confiança e velocidade.
-  </p>
-  <p className="text-sm text-muted-foreground">
-    Comece sua jornada hoje e transforme a maneira como você desenvolve aplicações Angular.
-  </p>
-</div>
+<Callout type="info">
+**Investimento Estratégico:** Adotar o Nx é mais do que uma escolha de ferramentas; é um investimento na saúde a longo prazo de seus projetos e na produtividade de sua equipe.
+</Callout>
+
+O Nx fornece a fundação e os trilhos de segurança necessários para construir aplicações de nível corporativo com confiança e velocidade.
+
+Comece sua jornada hoje e transforme a maneira como você desenvolve aplicações Angular.
