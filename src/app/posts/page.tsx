@@ -7,10 +7,10 @@ export default function Posts() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="space-y-6 mb-12">
-        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl">
+        <h1 className="text-4xl font-extrabold tracking-tight text-text-primary sm:text-5xl">
           All Posts
         </h1>
-        <p className="text-lg text-gray-500 max-w-2xl">
+        <p className="text-lg text-text-secondary max-w-2xl">
           Browse all articles on software development, architecture, and design.
         </p>
       </div>

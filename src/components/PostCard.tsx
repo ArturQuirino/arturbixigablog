@@ -8,8 +8,8 @@ interface Props {
 
 export default function PostCard({ post }: Props) {
   return (
-    <Link href={`/posts/${post.slug}`} className="flex flex-col overflow-hidden rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200 bg-white group">
-      <div className="relative h-48 w-full bg-gray-100">
+    <Link href={`/posts/${post.slug}`} className="flex flex-col overflow-hidden rounded-lg shadow-sm border border-text-secondary/10 hover:shadow-md transition-shadow duration-200 bg-surface group">
+      <div className="relative h-48 w-full bg-text-secondary/5">
         <Image
           src={post.image || "/placeholder_image.png"}
           alt={post.title}
@@ -24,7 +24,7 @@ export default function PostCard({ post }: Props) {
         </div> */}
       </div>
       <div className="flex flex-col flex-1 p-6">
-        <div className="flex items-center text-xs text-gray-500 mb-3">
+        <div className="flex items-center text-xs text-text-secondary mb-3">
           <time dateTime={post.date}>
             {new Date(post.date).toLocaleDateString("en-US", {
               year: "numeric",
@@ -40,16 +40,16 @@ export default function PostCard({ post }: Props) {
           )}
         </div>
         <div className="block mt-2">
-          <h3 className="text-xl font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">
+          <h3 className="text-xl font-semibold text-text-primary group-hover:text-brand-text transition-colors">
             {post.title}
           </h3>
         </div>
-        <p className="mt-3 text-base text-gray-500 line-clamp-3 flex-1">
+        <p className="mt-3 text-base text-text-secondary line-clamp-3 flex-1">
           {post.excerpt}
         </p>
         <div className="mt-6">
           <div
-            className="text-sm font-medium text-purple-600 group-hover:text-purple-500 flex items-center"
+            className="text-sm font-medium text-brand-text group-hover:text-brand-text/80 flex items-center"
           >
             Read Analysis
             <svg
