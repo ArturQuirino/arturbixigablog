@@ -13,7 +13,7 @@ export default function Header() {
             Blog
           </Link>
           <Link href="/about" className="text-sm font-medium text-text-secondary hover:text-brand-text transition-colors">
-            About
+            Sobre
           </Link>
           <ThemeToggle />
         </nav>

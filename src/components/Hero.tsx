@@ -12,20 +12,20 @@ export default function Hero({ post }: HeroProps) {
       <div className="space-y-4 max-w-3xl">
         <div className="flex justify-center">
           <span className="px-3 py-1 text-xs font-semibold tracking-wider text-brand-text uppercase bg-background border border-brand-text/20 rounded-full">
-            Engineering Notebook
+            Caderno de Engenharia
           </span>
         </div>
         <h1 className="text-5xl font-extrabold tracking-tight text-text-primary sm:text-6xl">
-          Visual Architecture for <br />
-          Senior Developers
+          Arquitetura Visual para <br />
+          Desenvolvedores Seniores
         </h1>
         <p className="text-xl text-text-secondary max-w-2xl mx-auto">
-          I turn complex concepts into simple mental models. <br />
-          No fluff, just diagrams and code.
+          Transformo conceitos complexos em modelos mentais simples. <br />
+          Sem enrolação, apenas diagramas e código.
         </p>
         <div className="pt-4">
           <Link href={`/posts/${post.slug}`} className="inline-flex items-center px-6 py-3 text-base font-medium text-white bg-primary rounded-md hover:bg-primary/90 transition-colors">
-            Read Latest Post
+            Ler Último Post
             <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
             </svg>

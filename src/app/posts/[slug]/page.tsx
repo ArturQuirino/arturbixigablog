@@ -3,6 +3,7 @@ import { MDXRemote } from "next-mdx-remote/rsc";
 import Link from "next/link";
 import Image from "next/image";
 import { format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { ArrowLeft } from "lucide-react";
 
 export async function generateStaticParams() {
@@ -42,11 +43,11 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
           className="inline-flex items-center text-sm text-gray-500 hover:text-blue-600 transition-colors mb-4"
         >
           <ArrowLeft className="w-4 h-4 mr-1" />
-          Back to blog
+          Voltar para o blog
         </Link>
 
         <time className="text-gray-500" dateTime={post.date}>
-          {format(parseISO(post.date), "LLLL d, yyyy")}
+          {format(parseISO(post.date), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}
         </time>
       </div>
 

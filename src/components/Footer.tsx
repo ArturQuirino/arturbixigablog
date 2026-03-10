@@ -8,7 +8,7 @@ export default function Footer() {
       </div>
       <div className="border-t border-text-secondary/10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center text-sm text-text-secondary">
-          © {new Date().getFullYear()} Artur Bixiga. All rights reserved.
+          © {new Date().getFullYear()} Artur Bixiga. Todos os direitos reservados.
         </div>
       </div>
     </footer>

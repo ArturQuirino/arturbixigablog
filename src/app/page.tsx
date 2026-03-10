@@ -15,11 +15,11 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-8">
           <div className="space-y-1">
-            <h2 className="text-2xl font-bold text-gray-900">The Visual Method</h2>
-            <p className="text-gray-500">Recent deep dives into frontend architecture.</p>
+            <h2 className="text-2xl font-bold text-gray-900">O Método Visual</h2>
+            <p className="text-gray-500">Estudos recentes sobre arquitetura frontend.</p>
           </div>
           <Link href="/posts" className="text-sm font-medium text-purple-600 hover:text-purple-500 flex items-center">
-            View all posts
+            Ver todos os posts
             <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
             </svg>

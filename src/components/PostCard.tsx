@@ -26,7 +26,7 @@ export default function PostCard({ post }: Props) {
       <div className="flex flex-col flex-1 p-6">
         <div className="flex items-center text-xs text-text-secondary mb-3">
           <time dateTime={post.date}>
-            {new Date(post.date).toLocaleDateString("en-US", {
+            {new Date(post.date).toLocaleDateString("pt-BR", {
               year: "numeric",
               month: "short",
               day: "numeric",
@@ -51,7 +51,7 @@ export default function PostCard({ post }: Props) {
           <div
             className="text-sm font-medium text-brand-text group-hover:text-brand-text/80 flex items-center"
           >
-            Read Analysis
+            Ler Análise
             <svg
               className="w-4 h-4 ml-1"
               fill="none"
