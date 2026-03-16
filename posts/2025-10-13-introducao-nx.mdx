@@ -1,15 +1,15 @@
 ---
-title: "Apresentando o Nx: O Sistema de Build para Profissionais"
-description: "Uma solução abrangente para escalabilidade, desempenho e manutenibilidade em aplicações Angular de nível corporativo"
-author: "Artur Quirino"
-publishedAt: "2024"
+title: 'Apresentando o Nx: O Sistema de Build para Profissionais'
+description: 'Uma solução abrangente para escalabilidade, desempenho e manutenibilidade em aplicações Angular de nível corporativo'
+author: 'Artur Quirino'
+publishedAt: '2025'
 date: '2025-10-13'
-tags: ["nx", "angular", "monorepo", "arquitetura", "performance"]
-image: "/covers/introducao-nx.png"
+tags: ['nx', 'angular', 'monorepo', 'arquitetura', 'performance']
+image: '/covers/2025-10-13-introducao-nx.png'
 ---
 
-import { Callout } from '@/components/ui/callout'
-import { CodeBlock } from '@/components/ui/code-block'
+import { Callout } from '@/components/ui/callout';
+import { CodeBlock } from '@/components/ui/code-block';
 
 # Apresentando o Nx: O Sistema de Build para Profissionais
 
@@ -20,14 +20,15 @@ Uma solução abrangente que transforma a maneira como você constrói, escala e
 ## O Que é o Nx?
 
 <Callout type="info" className="my-6">
-**O Nx não é um substituto para o Angular CLI** — é um sistema de build poderoso e extensível projetado para turbiná-lo.
+  **O Nx não é um substituto para o Angular CLI** — é um sistema de build poderoso e extensível
+  projetado para turbiná-lo.
 </Callout>
 
 Desenvolvido pela **Nrwl**, uma empresa fundada por ex-membros da equipe Angular, o Nx nasceu da necessidade de resolver exatamente esses desafios de escalabilidade em nível corporativo. Em sua essência, o Nx é um conjunto de ferramentas para desenvolvedores que fornece:
 
-*   **🎯 Orquestração Inteligente**: Gerenciamento avançado de tarefas e dependências
-*   **⚡ Geração de Código**: Scaffolding automático e consistente
-*   **💾 Cache Sofisticado**: Sistema de cache de computação distribuído
+- **🎯 Orquestração Inteligente**: Gerenciamento avançado de tarefas e dependências
+- **⚡ Geração de Código**: Scaffolding automático e consistente
+- **💾 Cache Sofisticado**: Sistema de cache de computação distribuído
 
 ### Além dos Monorepos
 
@@ -39,7 +40,9 @@ Embora o Nx seja reconhecido por seu suporte de primeira classe a **monorepos**,
 - ✅ Arquitetura preparada para o futuro
 
 <Callout type="success">
-**Mudança de Perspectiva**: Enquanto o Angular CLI é centrado em projetos, o Nx opera no nível do workspace, tratando toda a sua coleção de aplicações e bibliotecas como um único sistema interconectado.
+  **Mudança de Perspectiva**: Enquanto o Angular CLI é centrado em projetos, o Nx opera no nível do
+  workspace, tratando toda a sua coleção de aplicações e bibliotecas como um único sistema
+  interconectado.
 </Callout>
 
 ---
@@ -80,22 +83,24 @@ Para gerenciar essa base de código unificada, o Nx fornece uma estrutura de pro
 
 Qualquer coisa que seja **implantável**.
 
-*   ✓ Aplicações web Angular
-*   ✓ Testes end-to-end
-*   ✓ Servidores backend
-*   ✓ Camadas finas de configuração
+- ✓ Aplicações web Angular
+- ✓ Testes end-to-end
+- ✓ Servidores backend
+- ✓ Camadas finas de configuração
 
 ### 📚 libs/
 
 Onde a **grande maioria do código** deve viver.
 
-*   ✓ Componentes de UI reutilizáveis
-*   ✓ Lógica de negócios
-*   ✓ Serviços de acesso a dados
-*   ✓ Funções utilitárias
+- ✓ Componentes de UI reutilizáveis
+- ✓ Lógica de negócios
+- ✓ Serviços de acesso a dados
+- ✓ Funções utilitárias
 
 <Callout type="warning" className="my-6">
-**Princípio Fundamental**: As aplicações na pasta `apps` devem ser camadas finas, primariamente responsáveis por configuração, injeção de dependência e bootstrap. O trabalho pesado deve ser encapsulado dentro de bibliotecas bem definidas na pasta `libs`.
+  **Princípio Fundamental**: As aplicações na pasta `apps` devem ser camadas finas, primariamente
+  responsáveis por configuração, injeção de dependência e bootstrap. O trabalho pesado deve ser
+  encapsulado dentro de bibliotecas bem definidas na pasta `libs`.
 </Callout>
 
 ### Comandos Iniciais
@@ -105,10 +110,13 @@ Onde a **grande maioria do código** deve viver.
 npx create-nx-workspace@latest
 
 # Gerar nova aplicação
+
 nx generate @nx/angular:application my-app
 
 # Gerar nova biblioteca reutilizável
+
 nx generate @nx/angular:library my-lib`}
+
 </CodeBlock>
 
 ---
@@ -117,13 +125,15 @@ nx generate @nx/angular:library my-lib`}
 
 Para organizar ainda mais a pasta `libs`, é uma boa prática categorizar as bibliotecas por sua função. Essa separação semântica cria uma arquitetura clara e escalável.
 
-*   **🎨 Feature Libraries** (`type:feature`): Implementam UI "inteligente" para casos de uso específicos.
-*   **🎭 UI Libraries** (`type:ui`): Componentes puramente de apresentação ou "burros".
-*   **🔌 Data-Access Libraries** (`type:data-access`): Responsáveis por interações com fontes de dados externas.
-*   **🛠️ Utility Libraries** (`type:util`): Funções comuns e transversais usadas em qualquer lugar.
+- **🎨 Feature Libraries** (`type:feature`): Implementam UI "inteligente" para casos de uso específicos.
+- **🎭 UI Libraries** (`type:ui`): Componentes puramente de apresentação ou "burros".
+- **🔌 Data-Access Libraries** (`type:data-access`): Responsáveis por interações com fontes de dados externas.
+- **🛠️ Utility Libraries** (`type:util`): Funções comuns e transversais usadas em qualquer lugar.
 
 <Callout type="info">
-**Padrão Arquitetural**: Essa estrutura de apps versus libs fundamentalmente desacopla "o que o código faz" (as bibliotecas) de "como o código é implantado" (as aplicações). Uma biblioteca escrita na pasta `libs` é inerentemente **agnóstica de contexto**.
+  **Padrão Arquitetural**: Essa estrutura de apps versus libs fundamentalmente desacopla "o que o
+  código faz" (as bibliotecas) de "como o código é implantado" (as aplicações). Uma biblioteca
+  escrita na pasta `libs` é inerentemente **agnóstica de contexto**.
 </Callout>
 
 ---
@@ -132,16 +142,16 @@ Para organizar ainda mais a pasta `libs`, é uma boa prática categorizar as bib
 
 O desempenho notável do Nx não é mágica; é o resultado de três sistemas interconectados e inteligentes trabalhando em conjunto:
 
-*   **🕸️ Grafo de Dependências**: Análise estática completa do workspace.
-*   **💾 Cache de Computação**: Nunca fazer o mesmo trabalho duas vezes.
-*   **🎯 Comandos "Affected"**: Execução cirúrgica e seletiva.
+- **🕸️ Grafo de Dependências**: Análise estática completa do workspace.
+- **💾 Cache de Computação**: Nunca fazer o mesmo trabalho duas vezes.
+- **🎯 Comandos "Affected"**: Execução cirúrgica e seletiva.
 
 ### 1. O Grafo de Dependências: O Olho Que Tudo Vê
 
 A fundação de toda a inteligência do Nx é seu **grafo de dependências**. Quando você executa qualquer comando Nx, ele primeiro realiza uma análise estática de todo o seu workspace.
 
 <CodeBlock language="bash">
-{`# Visualizar o grafo interativo do workspace
+  {`# Visualizar o grafo interativo do workspace
 nx graph`}
 </CodeBlock>
 
@@ -154,16 +164,17 @@ Este grafo não é apenas um mecanismo interno; é uma ferramenta poderosa para 
 ### 2. Cache de Computação: A Arte da Eficiência
 
 <Callout type="success" className="my-6">
-**Princípio Fundamental**: Um comando como `build` ou `test` pode ser pensado como uma **função pura** — dados os mesmos inputs, sempre produz o mesmo output.
+  **Princípio Fundamental**: Um comando como `build` ou `test` pode ser pensado como uma **função
+  pura** — dados os mesmos inputs, sempre produz o mesmo output.
 </Callout>
 
 Antes de executar qualquer tarefa cacheável, o Nx calcula um **"hash de computação"** único, derivado de:
 
-*   ✓ Código-fonte do projeto e todas as dependências
-*   ✓ Arquivos de configuração global (tsconfig.base.json)
-*   ✓ Versões de pacotes npm externos
-*   ✓ Detalhes do ambiente de execução
-*   ✓ Flags de linha de comando específicas
+- ✓ Código-fonte do projeto e todas as dependências
+- ✓ Arquivos de configuração global (tsconfig.base.json)
+- ✓ Versões de pacotes npm externos
+- ✓ Detalhes do ambiente de execução
+- ✓ Flags de linha de comando específicas
 
 #### Nx Cloud: Cache Distribuído
 
@@ -171,8 +182,8 @@ Antes de executar qualquer tarefa cacheável, o Nx calcula um **"hash de computa
 
 Com o Nx Cloud, toda a equipe e o servidor de CI compartilham um único **cache distribuído**.
 
-*   **Desenvolvedor constrói projeto**: Resultado é enviado ao cache remoto.
-*   **CI tenta construir mesmo commit**: Baixa resultado em segundos.
+- **Desenvolvedor constrói projeto**: Resultado é enviado ao cache remoto.
+- **CI tenta construir mesmo commit**: Baixa resultado em segundos.
 
 ### 3. Comandos "Affected": Execução Cirúrgica
 
@@ -183,24 +194,29 @@ Em vez de cegamente executar um comando em todos os projetos, você pode usar os
 nx affected:test
 
 # Construir apenas projetos afetados
+
 nx affected:build
 
 # Verificar qual código foi afetado
+
 nx affected:graph`}
+
 </CodeBlock>
 
 **📊 Exemplo Prático**
 
 Em um workspace com **dezenas de aplicações** e **centenas de bibliotecas**, mudar uma única função utilitária pode afetar apenas:
 
-*   → Essa biblioteca
-*   → Duas outras bibliotecas que a importam
-*   → Uma aplicação que usa uma dessas bibliotecas
+- → Essa biblioteca
+- → Duas outras bibliotecas que a importam
+- → Uma aplicação que usa uma dessas bibliotecas
 
 **Resultado**: Testes executados apenas em 4 projetos, ignorando todo o resto!
 
 <Callout type="success">
-**Ciclo Virtuoso**: Essa combinação pode reduzir tempos de CI de **horas para minutos**, removendo o atrito que encoraja PRs grandes e arriscados. Com o Nx, PRs menores e mais frequentes tornam-se a norma.
+  **Ciclo Virtuoso**: Essa combinação pode reduzir tempos de CI de **horas para minutos**, removendo
+  o atrito que encoraja PRs grandes e arriscados. Com o Nx, PRs menores e mais frequentes tornam-se
+  a norma.
 </Callout>
 
 ---
@@ -214,7 +230,7 @@ Um dos maiores desafios em uma base de código grande e duradoura é o **desvio 
 Tags são identificadores de string simples que você adiciona ao arquivo de configuração de um projeto (`project.json`) para categorizá-lo:
 
 <CodeBlock language="json">
-{`{
+  {`{
   "name": "checkout-feature",
   "tags": ["type:feature", "scope:checkout"]
 }`}
@@ -222,16 +238,16 @@ Tags são identificadores de string simples que você adiciona ao arquivo de con
 
 #### Estratégia Prática de Tagging
 
-*   `type:ui + scope:shared`: Biblioteca de UI compartilhada
-*   `type:data-access + scope:products`: Data-access do domínio produtos
-*   `type:feature + scope:checkout`: Feature do processo de checkout
+- `type:ui + scope:shared`: Biblioteca de UI compartilhada
+- `type:data-access + scope:products`: Data-access do domínio produtos
+- `type:feature + scope:checkout`: Feature do processo de checkout
 
 ### Aplicando Regras com ESLint
 
 Uma vez que seus projetos estão marcados, você pode aplicar regras de dependência usando a regra ESLint `@nx/enforce-module-boundaries`:
 
 <CodeBlock language="json">
-{`"depConstraints": [
+  {`"depConstraints": [
   {
     "sourceTag": "scope:checkout",
     "onlyDependOnLibsWithTags": ["scope:checkout", "scope:shared"]
@@ -249,12 +265,14 @@ Uma vez que seus projetos estão marcados, você pode aplicar regras de dependê
 
 **🛡️ Regras Arquiteturais Codificadas**
 
-*   **Isolamento de Domínio:** Um projeto "products" não pode importar código de "checkout" aleatoriamente
-*   **Separação de Camadas:** Uma biblioteca "UI" é proibida de depender de "data-access"
-*   **Feedback Imediato:** Erros detectados em tempo real na IDE
+- **Isolamento de Domínio:** Um projeto "products" não pode importar código de "checkout" aleatoriamente
+- **Separação de Camadas:** Uma biblioteca "UI" é proibida de depender de "data-access"
+- **Feedback Imediato:** Erros detectados em tempo real na IDE
 
 <Callout type="info">
-**Transformação da Governança**: Diagramas abstratos de quadro branco tornam-se **regras vivas e verificáveis** incorporadas diretamente na base de código. A configuração do ESLint torna-se a única fonte de verdade para a arquitetura de alto nível.
+  **Transformação da Governança**: Diagramas abstratos de quadro branco tornam-se **regras vivas e
+  verificáveis** incorporadas diretamente na base de código. A configuração do ESLint torna-se a
+  única fonte de verdade para a arquitetura de alto nível.
 </Callout>
 
 ---
@@ -285,9 +303,9 @@ Além dos recursos poderosos para desempenho e arquitetura, o Nx fornece melhori
 
 Um novo workspace Nx vem com ferramentas modernas pré-configuradas:
 
-*   **🃏 Jest**: Testes unitários rápidos e eficientes
-*   **🌲 Cypress**: Testes E2E confiáveis e poderosos
-*   **💅 Prettier**: Formatação consistente de código
+- **🃏 Jest**: Testes unitários rápidos e eficientes
+- **🌲 Cypress**: Testes E2E confiáveis e poderosos
+- **💅 Prettier**: Formatação consistente de código
 
 ### Geração Poderosa de Código
 
@@ -298,14 +316,19 @@ Nx eleva o conceito de schematics do Angular com um rico ecossistema de geradore
 nx generate @nx/storybook:configuration my-lib
 
 # Configurar Tailwind CSS
+
 nx generate @nx/angular:setup-tailwind
 
 # Gerar backend NestJS completo
+
 nx generate @nx/nest:application api`}
+
 </CodeBlock>
 
 <Callout type="success" className="my-6">
-**"Caminho Pavimentado"**: O Nx padroniza workflows. O comando para testar uma aplicação Angular é o **mesmo** que o comando para testar um backend Node.js. Essa consistência reduz drasticamente a barreira de entrada e fomenta a "mobilidade de desenvolvedor".
+  **"Caminho Pavimentado"**: O Nx padroniza workflows. O comando para testar uma aplicação Angular é
+  o **mesmo** que o comando para testar um backend Node.js. Essa consistência reduz drasticamente a
+  barreira de entrada e fomenta a "mobilidade de desenvolvedor".
 </Callout>
 
 ---
@@ -316,12 +339,13 @@ nx generate @nx/nest:application api`}
 
 A jornada de uma aplicação Angular em crescimento é de complexidade crescente. Enquanto o Angular CLI fornece um excelente ponto de partida, **escalar efetivamente requer um sistema de build mais poderoso e inteligente**.
 
-*   **⚡ Rápidas**: Cache inteligente e comandos "affected" que só executam trabalho necessário
-*   **📈 Escaláveis**: Estrutura modular e grafo de dependências que fornece clareza e controle
-*   **🛡️ Manuteníveis**: Limites arquiteturais aplicados automaticamente que previnem dívida técnica
+- **⚡ Rápidas**: Cache inteligente e comandos "affected" que só executam trabalho necessário
+- **📈 Escaláveis**: Estrutura modular e grafo de dependências que fornece clareza e controle
+- **🛡️ Manuteníveis**: Limites arquiteturais aplicados automaticamente que previnem dívida técnica
 
 <Callout type="info">
-**Investimento Estratégico:** Adotar o Nx é mais do que uma escolha de ferramentas; é um investimento na saúde a longo prazo de seus projetos e na produtividade de sua equipe.
+  **Investimento Estratégico:** Adotar o Nx é mais do que uma escolha de ferramentas; é um
+  investimento na saúde a longo prazo de seus projetos e na produtividade de sua equipe.
 </Callout>
 
 O Nx fornece a fundação e os trilhos de segurança necessários para construir aplicações de nível corporativo com confiança e velocidade.
