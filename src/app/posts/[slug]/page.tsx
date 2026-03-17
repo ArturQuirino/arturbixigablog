@@ -1,5 +1,6 @@
 import { getPostData, getSortedPostsData } from "@/lib/posts";
 import { MDXRemote } from "next-mdx-remote/rsc";
+import rehypeSlug from "rehype-slug";
 import Link from "next/link";
 import Image from "next/image";
 import { format, parseISO } from "date-fns";
@@ -63,7 +64,7 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
         </div>
       )}
       <div className="prose prose-lg dark:prose-invert max-w-none">
-        <MDXRemote source={post.content} components={components} />
+        <MDXRemote source={post.content} components={components} options={{ mdxOptions: { rehypePlugins: [rehypeSlug] } }} />
       </div>
     </article>
   );

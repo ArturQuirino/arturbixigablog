@@ -1,0 +1,403 @@
+---
+title: 'Vitest no Angular: testes de componente do jeito certo'
+description: 'Uma solução abrangente para escalabilidade, desempenho e manutenibilidade em aplicações Angular de nível corporativo'
+author: 'Artur Quirino'
+publishedAt: '2025'
+date: '2026-03-17'
+tags: ['vitest', 'angular', 'tests', 'jest', 'cypress']
+image: '/covers/2025-10-13-introducao-nx.png'
+---
+
+# Vitest no Angular: testes de componente do jeito certo
+
+## TL;DR
+
+Este artigo explica por que o Angular adotou o Vitest como framework de testes padrão a partir da versão 21, como isso se conecta à migração para esbuild e Vite, e como escrever testes de componente reais usando `TestBed`. Você vai ver na prática como configurar um componente no ambiente de teste, alterar seus inputs e mockar um service — usando `ProductCardComponent` e `ProductService` como exemplos recorrentes. Se você já escreve testes no Angular mas nunca parou pra entender o que `TestBed` está fazendo por baixo, este artigo é pra você.
+
+---
+
+## Pré-requisitos
+
+- Familiaridade com componentes Angular (inputs, outputs, template binding)
+- Conhecimento básico de injeção de dependência no Angular
+- Ter escrito ao menos um teste unitário em qualquer linguagem — não precisa ser Angular
+
+---
+
+## O problema
+
+Testes no Angular sempre tiveram um problema de fricção. Não era impossível escrever testes — o framework sempre teve suporte nativo via `TestBed` — mas a experiência deixava a desejar.
+
+A stack padrão durante anos foi Karma + Jasmine. O Karma abre um browser real (ou headless) pra rodar os testes, o que significa que cada execução carregava um servidor, um processo separado do Chrome, e fazia um build completo antes de mostrar qualquer resultado. Em projetos médios, era comum esperar 30, 40 segundos pra ver os testes rodarem pela primeira vez. Num ciclo de desenvolvimento onde você quer feedback em segundos, isso é tempo demais.
+
+Não demorou pra surgir a alternativa: muita equipe migrou pro Jest. O Jest roda em Node.js, não precisa de browser, e era significativamente mais rápido. O problema é que essa migração nunca foi oficialmente suportada pelo Angular CLI — era sempre uma configuração manual, com risco de quebrar a cada atualização do framework. Outras equipes foram além e adotaram o Cypress pra cobrir testes de componente, mas o custo de subir um browser real pra cada execução tornava o feedback lento demais pra um ciclo de desenvolvimento ágil.
+
+O Angular team reconheceu o problema. Em 2023, o Karma foi oficialmente depreciado. O time explorou alternativas — Jest, Web Test Runner — mas nenhuma encaixava perfeitamente com a direção que o Angular estava tomando na infraestrutura de build.
+
+Essa direção era a migração para esbuild e Vite. E foi ela que abriu a porta pro Vitest.
+
+---
+
+## Índice
+
+1. [Por que o Angular precisava mudar a stack de testes](#por-que-o-angular-precisava-mudar-a-stack-de-testes)
+2. [Por que o Vitest — e não o Jest ou o Cypress](#por-que-o-vitest--e-não-o-jest-ou-o-cypress)
+3. [Angular 21: Vitest como padrão](#angular-21-vitest-como-padrão)
+4. [Escrevendo testes com Vitest no Angular](#escrevendo-testes-com-vitest-no-angular)
+   - [Configurando o ambiente com TestBed](#configurando-o-ambiente-com-testbed)
+   - [Testando inputs do componente](#testando-inputs-do-componente)
+   - [Mockando services](#mockando-services)
+5. [Trade-offs, limitações e contexto de uso](#trade-offs-limitações-e-contexto-de-uso)
+
+---
+
+## Por que o Angular precisava mudar a stack de testes
+
+O Karma nasceu numa época em que rodar JavaScript fora do browser era complicado. O V8 do Node.js existia, mas o ecossistema de ferramentas pra frontend ainda não tinha resolvido questões como módulos, transformações de TypeScript e emulação de DOM de forma confiável fora do browser. Fazia sentido, então, usar o browser mesmo.
+
+Isso mudou. Node.js amadureceu, TypeScript virou padrão, jsdom e happy-dom tornaram a emulação de DOM suficientemente boa pra maioria dos testes unitários. O custo de abrir um browser real pra cada execução de testes passou de "necessário" pra "overhead injustificável".
+
+O problema mais profundo do Karma, porém, não era velocidade — era o modelo de build. O Karma usava o webpack por baixo, o mesmo bundler que o Angular CLI usava há anos. Quando o Angular começou a migrar pra esbuild (muito mais rápido), a integração com Karma ficou cada vez mais precária. Você tinha dois sistemas de build paralelos, com configurações potencialmente conflitantes.
+
+Isso explica por que o Jest, apesar de popular, nunca foi adotado oficialmente. O Jest usa seu próprio sistema de transformação — `babel-jest` ou `ts-jest` — que é independente do pipeline de build do Angular. Funciona, mas significa que você tem uma configuração de build pra desenvolvimento, outra pra produção, e uma terceira pra testes. Qualquer mudança no compilador do Angular precisa ser refletida nos três lugares.
+
+---
+
+## Por que o Vitest — e não o Jest ou o Cypress
+
+A primeira distinção importante é de categoria. Ferramentas de teste não são intercambiáveis — elas existem em camadas com objetivos diferentes.
+
+{/* DIAGRAMA: Pirâmide de testes */}
+
+> 📊 **[DIAGRAMA — Pirâmide de testes]** > _Inserir aqui o diagrama da pirâmide de testes com três camadas (Unitário / Componente / E2E), ferramentas posicionadas em cada camada, e os eixos de velocidade (↑ para baixo) e fidelidade (↑ para cima) nas laterais._
+
+A pirâmide ilustra o trade-off central: quanto mais alto você sobe, mais o teste se parece com o que o usuário experimenta de verdade — mas você paga em velocidade e custo de manutenção. Testes unitários ficam na base (rápidos, isolados, baratos), testes de componente no meio, testes E2E no topo (lentos, caros, alta fidelidade).
+
+Essa distinção ficou menos nítida depois que o Cypress lançou suporte a testes de componente na versão 10. Hoje o Cypress não vive só no topo da pirâmide — ele permite montar um componente Angular de forma isolada, sem precisar subir a aplicação inteira, e interagir com ele num browser real. É uma proposta legítima, e vale entender exatamente onde ela faz sentido.
+
+A diferença fundamental entre Cypress Component Testing e Vitest + `TestBed` é o ambiente de execução. O Vitest roda em Node.js com jsdom simulando o DOM. O Cypress roda num browser real — Chromium, Firefox, ou WebKit. Essa diferença tem consequências práticas em duas direções.
+
+Onde o Cypress Component Testing tem vantagem real: comportamento visual e APIs de layout. Se você precisa verificar que uma animação CSS dispara corretamente, que um componente responde ao `IntersectionObserver`, ou que o scroll funciona como esperado, jsdom vai te decepcionar — ele não implementa essas APIs de forma confiável. Um browser real implementa. Nesses casos, Cypress Component Testing é a ferramenta certa.
+
+Onde o Vitest + `TestBed` ganha: em tudo o mais. A diferença de velocidade é significativa — um teste Vitest leva milissegundos; um teste Cypress Component, mesmo sem subir a aplicação inteira, ainda precisa inicializar um browser e carregar o ambiente Cypress, o que leva segundos. Num projeto com centenas de testes de componente, essa diferença se acumula de forma que impacta o ciclo de desenvolvimento.
+
+Mas o argumento mais relevante no contexto do Angular não é velocidade — é integração. O Cypress mantém seu próprio pipeline de transformação, separado do Angular CLI. Assim como o Jest, ele não tem integração nativa com esbuild ou Vite. Isso significa que mudanças no compilador do Angular precisam ser absorvidas em dois lugares, e que você perde os benefícios de cold start que o Vitest herda do esbuild. A mesma razão que descartou o Jest como candidato oficial descarta o Cypress também: você estaria mantendo duas stacks de build paralelas.
+
+O Vitest, portanto, não compete com o Cypress — nem com o Cypress Component Testing. Compete com o Jest — e é aqui que a comparação técnica faz sentido.
+
+O Vitest foi construído sobre o Vite. Isso não é detalhe de implementação — é a decisão de design central que o torna diferente do Jest. Para entender o que isso significa na prática: o Vite atua como um servidor de desenvolvimento que transforma e serve seus arquivos usando esbuild por baixo. O Vitest, por ser construído sobre o Vite, aproveita exatamente esse mesmo pipeline — então os dois falam a mesma língua, compartilham a mesma configuração e enxergam o código da mesma forma.
+
+Isso tem implicações concretas:
+
+**Suporte nativo a ESM.** O Jest foi construído na era do CommonJS e, apesar de suportar ESM hoje, ainda carrega peso histórico dessa decisão. O Vitest assume ESM como padrão, o que significa menos configuração pra projetos modernos.
+
+**Mesma configuração de aliases e paths.** Se você define um path alias no `tsconfig`, o Vitest enxerga automaticamente. No Jest, você precisa duplicar essa configuração via `moduleNameMapper`. É ruído de configuração que não deveria existir.
+
+**Watch mode inteligente.** O Vitest em modo `--watch` usa o grafo de dependências do Vite pra reexecutar exatamente os testes afetados por uma mudança — não um "re-roda tudo", é granular.
+
+**Performance de cold start.** O esbuild, que o Vite usa internamente pra transformar TypeScript, é escrito em Go e é ordens de magnitude mais rápido que o compilador TypeScript puro. Testes que levavam 30 segundos pra iniciar passam a iniciar em 2 ou 3 segundos.
+
+{/* DIAGRAMA: Tabela comparativa com heatmap visual */}
+
+> 📊 **[DIAGRAMA — Comparação de ferramentas de teste]** > _Inserir aqui a tabela comparativa com células coloridas (verde/amarelo/vermelho) para Karma, Jest, Vitest, Cypress E2E e Cypress Component, nos eixos: ambiente de execução, suporte a ESM, integração com Vite/esbuild, watch mode inteligente, cold start, suporte oficial Angular CLI, e melhor caso de uso._
+
+> Os tempos de cold start são aproximações. Cypress Component é mais rápido que E2E porque não sobe a aplicação inteira, mas ainda inicializa um browser.
+
+---
+
+## Angular 21: Vitest como padrão
+
+A partir do Angular 21, todo projeto criado com `ng new` já vem configurado com Vitest. Você não precisa instalar nada, não precisa configurar nada manualmente. O comando `ng test` simplesmente funciona.
+
+A estrutura gerada inclui `vitest` e `jsdom` como dependências de desenvolvimento. O jsdom é a biblioteca que emula o DOM do browser dentro do Node.js — é ela que permite que `document`, `window` e `HTMLElement` existam nos testes sem um browser real.
+
+Se você precisar de algo mais próximo do comportamento real do browser — por exemplo, pra testar APIs de scroll ou ResizeObserver — é possível substituir o jsdom pelo happy-dom, ou configurar o Vitest pra rodar em modo browser usando Playwright ou WebdriverIO. Mas isso é território avançado; pra testes unitários de componentes, o jsdom resolve bem.
+
+A configuração fica centralizada no `angular.json`, no target `test`:
+
+```json
+{
+  "projects": {
+    "my-app": {
+      "architect": {
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "include": ["**/*.spec.ts"],
+            "coverage": false
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+O Angular CLI abstrai a configuração do Vitest. Você não escreve um `vitest.config.ts` diretamente — a menos que precise de configuração avançada, onde pode usar a opção `runnerConfig` pra apontar pra um arquivo customizado.
+
+---
+
+## Escrevendo testes com Vitest no Angular
+
+Antes de ver código, vale entender o que o `TestBed` é e por que ele existe.
+
+Componentes Angular não são classes simples. Eles dependem de um sistema de DI, de um compilador de templates, de um ciclo de detecção de mudanças. Você não consegue instanciar um componente com `new ProductCardComponent()` e esperar que ele funcione — ele precisa estar dentro de um ambiente que entende Angular.
+
+> 💡 **[MENTAL MODEL — O que é o TestBed]**
+> O `TestBed` é para componentes Angular o que um container Docker mínimo é para uma aplicação: você declara exatamente as dependências que o componente precisa, e ele sobe um ambiente isolado só com aquilo. O componente não sabe que está num ambiente de teste — ele só enxerga um módulo Angular funcional ao redor dele.
+
+O `TestBed` é esse ambiente. Ele cria um módulo Angular mínimo em memória, compila o componente, instancia a árvore de DI e deixa você interagir com o componente como se estivesse num browser. É uma abstração custosa — e é por isso que testes de componente são mais lentos que testes unitários puros — mas é necessária quando você precisa testar comportamento que envolve template, binding e DI.
+
+> ❓ **Checkpoint — antes de continuar**
+> Por que você não pode simplesmente instanciar um `ProductCardComponent` com `new ProductCardComponent()` num teste e chamar `ngOnInit()` manualmente? O que estaria faltando?
+> _(Pense por um momento antes de seguir em frente.)_
+
+{/* DIAGRAMA: Fluxo do TestBed */}
+
+> 📊 **[DIAGRAMA — Ciclo de setup do TestBed]** > _Inserir aqui um diagrama de fluxo linear mostrando as quatro etapas em sequência: (1) `configureTestingModule` — declara o módulo de teste; (2) `compileComponents` — compila templates; (3) `createComponent` — instancia o componente e cria o fixture; (4) `detectChanges` — dispara o primeiro ciclo de renderização e chama `ngOnInit`. Indicar entre as etapas 3 e 4 que o componente existe mas ainda não foi renderizado._
+
+### Nosso componente de exemplo
+
+Usamos `ProductCardComponent` e `ProductService` como base ao longo de toda esta seção — e a escolha não é arbitrária. Este componente tem exatamente as três características que aparecem com mais frequência em testes reais: inputs que mudam o template, lógica executada no `ngOnInit`, e uma dependência de service externo. Isso nos obriga a cobrir os três cenários de teste mais comuns num único exemplo coerente.
+
+```typescript
+// product.service.ts
+@Injectable({ providedIn: 'root' })
+export class ProductService {
+  getDiscount(productId: string): number {
+    // Busca desconto de uma API externa
+    return 0;
+  }
+}
+```
+
+```typescript
+// product-card.component.ts
+import { Component, Input, OnInit } from '@angular/core';
+import { CurrencyPipe, NgIf } from '@angular/common';
+import { ProductService } from '../services/product.service';
+
+@Component({
+  selector: 'app-product-card',
+  standalone: true,
+  imports: [CurrencyPipe, NgIf],
+  template: `
+    <div class="product-card">
+      <h2>{{ name }}</h2>
+      <p class="price">{{ finalPrice | currency : 'BRL' }}</p>
+      <span *ngIf="isAvailable" class="badge">Disponível</span>
+    </div>
+  `,
+})
+export class ProductCardComponent implements OnInit {
+  @Input() productId!: string;
+  @Input() name!: string;
+  @Input() price!: number;
+  @Input() isAvailable = true;
+
+  finalPrice = 0;
+
+  constructor(private productService: ProductService) {}
+
+  ngOnInit() {
+    const discount = this.productService.getDiscount(this.productId);
+    this.finalPrice = this.price * (1 - discount);
+  }
+}
+```
+
+### Configurando o ambiente com TestBed
+
+```typescript
+// product-card.component.spec.ts
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ProductCardComponent } from './product-card.component';
+import { ProductService } from '../services/product.service';
+
+describe('ProductCardComponent', () => {
+  let fixture: ComponentFixture<ProductCardComponent>;
+  let component: ProductCardComponent;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [ProductCardComponent],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(ProductCardComponent);
+    component = fixture.componentInstance;
+  });
+});
+```
+
+Algumas coisas merecem atenção aqui.
+
+`configureTestingModule` declara o módulo de teste. Como `ProductCardComponent` é standalone, ele entra em `imports` — não em `declarations`. Essa distinção importa: componentes standalone são módulos em si mesmos, então a forma de registrá-los é diferente de componentes baseados em NgModule.
+
+`compileComponents()` é assíncrono porque pode precisar buscar templates externos (arquivos `.html` separados). Com templates inline, essa chamada é tecnicamente desnecessária — mas vale mantê-la por robustez: se você ou alguém do time mover o template para um arquivo externo no futuro, o teste não quebra silenciosamente.
+
+`fixture` é o objeto central do teste de componente. Ele encapsula o componente, seu elemento no DOM e o controle do ciclo de detecção de mudanças. Você raramente interage com o componente diretamente — você usa o `fixture` como intermediário.
+
+### Testando inputs do componente
+
+```typescript
+it('deve exibir o nome do produto', () => {
+  // Arrange: define os inputs antes do primeiro ciclo de detecção
+  component.productId = 'prod-1';
+  component.name = 'Tênis Running Pro';
+  component.price = 299.9;
+
+  // Act: dispara a detecção de mudanças e renderiza o template
+  fixture.detectChanges();
+
+  // Assert: verifica o DOM renderizado
+  const h2 = fixture.nativeElement.querySelector('h2');
+  expect(h2.textContent).toBe('Tênis Running Pro');
+});
+```
+
+O ponto que confunde desenvolvedores novos em testes de componente Angular é o `fixture.detectChanges()`. Ele precisa ser chamado explicitamente porque o Angular não roda a detecção de mudanças automaticamente no ambiente de teste — você tem controle total sobre quando o ciclo acontece.
+
+Na prática, isso é uma vantagem: você pode definir o estado do componente antes da primeira renderização, o que seria impossível se o Angular renderizasse automaticamente no momento da criação. O `ngOnInit` só é chamado após o primeiro `detectChanges()`.
+
+```typescript
+it('deve exibir badge de disponibilidade quando produto está disponível', () => {
+  component.productId = 'prod-1';
+  component.name = 'Tênis Running Pro';
+  component.price = 299.9;
+  component.isAvailable = true;
+
+  fixture.detectChanges();
+
+  const badge = fixture.nativeElement.querySelector('.badge');
+  expect(badge).not.toBeNull();
+});
+
+it('não deve exibir badge quando produto não está disponível', () => {
+  component.productId = 'prod-1';
+  component.name = 'Tênis Running Pro';
+  component.price = 299.9;
+  component.isAvailable = false;
+
+  fixture.detectChanges();
+
+  const badge = fixture.nativeElement.querySelector('.badge');
+  expect(badge).toBeNull();
+});
+```
+
+Note o padrão Arrange / Act / Assert nos três testes. Cada teste configura o estado que lhe interessa, dispara a renderização e verifica uma coisa só. Testes que verificam múltiplas coisas ao mesmo tempo ficam difíceis de diagnosticar quando falham — você não sabe qual das afirmações quebrou.
+
+### Mockando services
+
+O `ProductService.getDiscount()` faz uma chamada externa. Em testes unitários, você não quer dependências externas: elas tornam os testes lentos, não-determinísticos e difíceis de controlar. A solução é substituir o service real por um mock.
+
+> ⚠️ **[ARMADILHA — `vi.fn()` sem valor padrão]**
+> Se você não chamar `mockReturnValue` (ou `mockResolvedValue` pra funções assíncronas), a função retorna `undefined` por padrão. Dependendo de como o componente usa o retorno, isso pode causar comportamento silenciosamente errado — sem erro, sem falha óbvia no teste. **Sempre defina um valor padrão no `beforeEach`**, mesmo que seja o valor neutro da operação (`0` pra desconto, `[]` pra listas, etc.).
+
+```typescript
+describe('ProductCardComponent', () => {
+  let fixture: ComponentFixture<ProductCardComponent>;
+  let component: ProductCardComponent;
+  let mockProductService: vi.Mocked<ProductService>;
+
+  beforeEach(async () => {
+    // Cria um mock com todas as funções do ProductService substituídas por vi.fn()
+    mockProductService = {
+      getDiscount: vi.fn().mockReturnValue(0), // valor padrão: sem desconto
+    } as unknown as vi.Mocked<ProductService>;
+
+    await TestBed.configureTestingModule({
+      imports: [ProductCardComponent],
+      providers: [
+        // Substitui o ProductService real pelo mock na árvore de DI
+        { provide: ProductService, useValue: mockProductService },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(ProductCardComponent);
+    component = fixture.componentInstance;
+  });
+
+  it('deve calcular o preço final sem desconto', () => {
+    mockProductService.getDiscount.mockReturnValue(0);
+
+    component.productId = 'prod-1';
+    component.name = 'Tênis Running Pro';
+    component.price = 299.9;
+
+    fixture.detectChanges();
+
+    expect(component.finalPrice).toBe(299.9);
+  });
+
+  it('deve calcular o preço final com 20% de desconto', () => {
+    mockProductService.getDiscount.mockReturnValue(0.2);
+
+    component.productId = 'prod-1';
+    component.name = 'Tênis Running Pro';
+    component.price = 299.9;
+
+    fixture.detectChanges();
+
+    expect(component.finalPrice).toBeCloseTo(239.92);
+  });
+});
+```
+
+O mecanismo aqui é a própria injeção de dependência do Angular. Quando você passa `{ provide: ProductService, useValue: mockProductService }` nos providers do `TestBed`, está dizendo ao sistema de DI: "quando alguém pedir `ProductService`, entrega esse objeto". O componente não sabe que está recebendo um mock — ele só sabe que recebeu algo que implementa a interface que esperava.
+
+`vi.fn()` é a função do Vitest que cria um mock de função. Ela registra todas as chamadas feitas a ela e permite configurar o valor de retorno — que é o que `mockReturnValue` faz.
+
+> 💡 **[DETALHE TÉCNICO — `toBeCloseTo` vs `toBe`]**
+> Usamos `toBeCloseTo` em vez de `toBe` pra comparar o preço com desconto. Aritmética de ponto flutuante em JavaScript pode gerar resultados como `239.92000000000002`. O `toBeCloseTo` aceita uma tolerância razoável e evita testes que quebram por erro de precisão — um problema real que não tem nada a ver com o código que você está testando.
+
+---
+
+## Trade-offs, limitações e contexto de uso
+
+**Vitest + jsdom não é um browser real.** Testes que dependem de APIs de layout (como `getBoundingClientRect`, `IntersectionObserver`, ou scroll) vão falhar ou se comportar de forma inesperada em jsdom. Nesses casos, o caminho é o modo browser do Vitest com Playwright ou WebdriverIO — ou, se o comportamento for suficientemente complexo, um teste de integração/E2E com Cypress ou Playwright puro.
+
+**TestBed tem custo.** Cada `configureTestingModule` cria um módulo Angular do zero. Em projetos com centenas de testes de componente, isso acumula. Se você perceber que sua suite de testes está lenta, o primeiro lugar pra olhar é quantos `TestBed` desnecessários você está criando — às vezes uma função de utilidade pura pode ser testada sem `TestBed` algum.
+
+**Migração de projetos existentes não é automática.** Se você tem um projeto em Angular anterior ao v21 com Karma, a migração envolve alguns passos: o Angular CLI oferece o comando `ng generate config vitest` pra criar a configuração base, e existe um guia oficial em `angular.dev` dedicado à migração. A maioria das migrações é direta, mas projetos com configuração de Karma muito customizada vão exigir trabalho manual.
+
+**Vitest e Cypress se complementam, não se substituem.** Uma suite de testes madura num projeto Angular usa os dois: Vitest pra cobertura rápida de unidades e componentes isolados, Cypress pra fluxos E2E críticos e para componentes cujo comportamento depende de um browser real — animações, APIs de layout, interações visuais. O que mudou com o Angular 21 é que a base dessa estratégia agora tem uma ferramenta de primeira classe, integrada nativamente ao pipeline do CLI.
+
+---
+
+## Resumo e conclusão
+
+O Angular levou tempo pra resolver sua stack de testes — e esse tempo deixou marcas: equipes usando Jest sem suporte oficial, projetos com configuração duplicada de build, desenvolvedores que simplesmente pararam de escrever testes porque a fricção era alta demais.
+
+A adoção do Vitest no Angular 21 não é só uma atualização de ferramenta. É uma consolidação: o pipeline de build e o pipeline de testes agora compartilham a mesma base técnica, o que significa menos configuração, menos inconsistência e menos motivo pra não testar.
+
+Os padrões que vimos aqui — `TestBed`, inputs, mocks — são a base de praticamente todo teste de componente Angular. O Vitest muda o runner, não a API. Se você já escrevia testes com Karma, o que mudou é a velocidade e a configuração. Se você nunca escreveu testes em Angular por causa da fricção, essa pode ser a hora de começar.
+
+---
+
+## Questões de compreensão
+
+1. Por que o Angular não adotou o Jest como substituto oficial do Karma, dado que Jest já era amplamente usado pela comunidade?
+
+2. Qual é a diferença entre adicionar um componente standalone em `imports` versus `declarations` no `configureTestingModule`?
+
+3. Por que `fixture.detectChanges()` precisa ser chamado manualmente nos testes de componente Angular, em vez de o Angular disparar o ciclo automaticamente?
+
+4. Em que situações o ambiente jsdom seria insuficiente para seus testes, e qual seria a alternativa dentro do próprio Vitest antes de recorrer ao Cypress?
+
+5. Qual é o risco de não definir um `mockReturnValue` padrão no `beforeEach` quando você está mockando um service?
+
+6. A pirâmide de testes sugere que você deve ter mais testes na base do que no topo. Que critério você usaria pra decidir quando um comportamento merece um teste Vitest de componente versus um teste Cypress E2E?
+
+---
+
+## Referências
+
+- [Angular Testing Guide — angular.dev](https://angular.dev/guide/testing)
+- [Migrating from Karma to Vitest — angular.dev](https://angular.dev/guide/testing/migrating-to-vitest)
+- [Vitest documentation — vitest.dev](https://vitest.dev)
+- [Angular v21 Release Notes — angular.dev](https://angular.dev/events/v21)
+- [Karma deprecation announcement — GitHub](https://github.com/karma-runner/karma)
+- [Cypress Component Testing — docs.cypress.io](https://docs.cypress.io/guides/component-testing/overview)
+
+---
