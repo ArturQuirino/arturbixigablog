@@ -67,9 +67,7 @@ Isso explica por que o Jest, apesar de popular, nunca foi adotado oficialmente. 
 
 A primeira distinção importante é de categoria. Ferramentas de teste não são intercambiáveis — elas existem em camadas com objetivos diferentes.
 
-{/* DIAGRAMA: Pirâmide de testes */}
-
-> 📊 **[DIAGRAMA — Pirâmide de testes]** > _Inserir aqui o diagrama da pirâmide de testes com três camadas (Unitário / Componente / E2E), ferramentas posicionadas em cada camada, e os eixos de velocidade (↑ para baixo) e fidelidade (↑ para cima) nas laterais._
+![Pirâmide de testes: testes unitários na base (rápidos, isolados, baratos - vitest), testes de componente no meio (template, binding, DI - Vitest + Testbed, Cypress Component), e testes E2E no topo (alta fidelidade, maior custo - Cypress E2E)](/images/piramide-tests.png)
 
 A pirâmide ilustra o trade-off central: quanto mais alto você sobe, mais o teste se parece com o que o usuário experimenta de verdade — mas você paga em velocidade e custo de manutenção. Testes unitários ficam na base (rápidos, isolados, baratos), testes de componente no meio, testes E2E no topo (lentos, caros, alta fidelidade).
 
@@ -97,9 +95,7 @@ Isso tem implicações concretas:
 
 **Performance de cold start.** O esbuild, que o Vite usa internamente pra transformar TypeScript, é escrito em Go e é ordens de magnitude mais rápido que o compilador TypeScript puro. Testes que levavam 30 segundos pra iniciar passam a iniciar em 2 ou 3 segundos.
 
-{/* DIAGRAMA: Tabela comparativa com heatmap visual */}
-
-> 📊 **[DIAGRAMA — Comparação de ferramentas de teste]** > _Inserir aqui a tabela comparativa com células coloridas (verde/amarelo/vermelho) para Karma, Jest, Vitest, Cypress E2E e Cypress Component, nos eixos: ambiente de execução, suporte a ESM, integração com Vite/esbuild, watch mode inteligente, cold start, suporte oficial Angular CLI, e melhor caso de uso._
+![Tabela comparativa de ferramentas de teste: Karma, Jest, Vitest, Cypress E2E e Cypress Component, comparando ambiente de execução, suporte a ESM, integração com Vite/esbuild, watch mode inteligente, cold start, suporte oficial Angular CLI e melhor caso de uso](/images/tabela-vitest.png)
 
 > Os tempos de cold start são aproximações. Cypress Component é mais rápido que E2E porque não sobe a aplicação inteira, mas ainda inicializa um browser.
 
