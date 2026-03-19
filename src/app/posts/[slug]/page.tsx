@@ -1,11 +1,11 @@
-import { getPostData, getSortedPostsData } from "@/lib/posts";
-import { MDXRemote } from "next-mdx-remote/rsc";
-import rehypeSlug from "rehype-slug";
-import Link from "next/link";
-import Image from "next/image";
-import { format, parseISO } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { ArrowLeft } from "lucide-react";
+import { getPostData, getSortedPostsData } from '@/lib/posts';
+import { MDXRemote } from 'next-mdx-remote/rsc';
+import rehypeSlug from 'rehype-slug';
+import Link from 'next/link';
+import Image from 'next/image';
+import { format, parseISO } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { ArrowLeft } from 'lucide-react';
 
 export async function generateStaticParams() {
   const posts = getSortedPostsData();
@@ -23,9 +23,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-import { Callout } from "@/components/ui/callout";
-import { CodeBlock } from "@/components/ui/code-block";
-import { Card } from "@/components/ui/card";
+import { Callout } from '@/components/ui/callout';
+import { CodeBlock } from '@/components/ui/code-block';
+import { Card } from '@/components/ui/card';
 const components = {
   Callout,
   CodeBlock,
@@ -53,18 +53,16 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
       </div>
 
       {post.image && (
-        <div className="relative w-full h-64 md:h-96 mb-8 rounded-xl overflow-hidden bg-gray-100 border border-gray-200 shadow-sm">
-          <Image
-            src={post.image}
-            alt={post.title}
-            fill
-            className="object-cover"
-            priority
-          />
+        <div className="relative w-full h-64 md:h-96 mb-8 rounded-xl overflow-hidden bg-gray-100 shadow-sm">
+          <Image src={post.image} alt={post.title} fill className="object-cover" priority />
         </div>
       )}
       <div className="prose prose-lg dark:prose-invert max-w-none">
-        <MDXRemote source={post.content} components={components} options={{ mdxOptions: { rehypePlugins: [rehypeSlug] } }} />
+        <MDXRemote
+          source={post.content}
+          components={components}
+          options={{ mdxOptions: { rehypePlugins: [rehypeSlug] } }}
+        />
       </div>
     </article>
   );
