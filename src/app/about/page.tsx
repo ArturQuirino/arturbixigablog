@@ -52,6 +52,12 @@ export default function About() {
       <p>
         Se você gosta de explicações técnicas profundas, mas bem estruturadas e didáticas, provavelmente vai se sentir em casa por aqui.
       </p>
+      <p>
+        Se quiser trocar uma ideia ou acompanhar meu trabalho, me encontre no{' '}
+        <a href="https://www.linkedin.com/in/arturquirino/" target="_blank" rel="noopener noreferrer">
+          LinkedIn
+        </a>.
+      </p>
     </div>
   );
 }
