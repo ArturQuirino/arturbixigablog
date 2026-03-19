@@ -1,9 +1,9 @@
 export default function Subscribe() {
   return (
     <div className="max-w-xl mx-auto my-12 p-6 bg-gray-50 dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 rounded-lg">
-      <h3 className="font-bold text-xl mb-2 text-gray-900 dark:text-gray-100">Assine a newsletter</h3>
+      <h3 className="font-bold text-xl mb-2 text-gray-900 dark:text-gray-100">Receba novos artigos sobre Angular avançado</h3>
       <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm">
-        Receba os últimos posts direto na sua caixa de entrada.
+        Sem spam — só conteúdo técnico, didático e direto ao ponto.
       </p>
       <form
         action="https://buttondown.com/api/emails/embed-subscribe/arturbixigablog"

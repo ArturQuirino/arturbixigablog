@@ -15,8 +15,8 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-8">
           <div className="space-y-1">
-            <h2 className="text-2xl font-bold text-gray-900">O Método Visual</h2>
-            <p className="text-gray-500">Estudos recentes sobre arquitetura frontend.</p>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Didática para conteúdo avançado</h2>
+            <p className="text-gray-500 dark:text-gray-400">Deep dives em Angular, arquitetura e engenharia de frontend.</p>
           </div>
           <Link href="/posts" className="text-sm font-medium text-purple-600 hover:text-purple-500 flex items-center">
             Ver todos os posts

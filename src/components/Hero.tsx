@@ -12,16 +12,15 @@ export default function Hero({ post }: HeroProps) {
       <div className="space-y-4 max-w-3xl">
         <div className="flex justify-center">
           <span className="px-3 py-1 text-xs font-semibold tracking-wider text-brand-text uppercase bg-background border border-brand-text/20 rounded-full">
-            Caderno de Engenharia
+            por Artur Bixiga
           </span>
         </div>
         <h1 className="text-5xl font-extrabold tracking-tight text-text-primary sm:text-6xl">
-          Arquitetura Visual para <br />
-          Desenvolvedores Seniores
+          Angular avançado, <br />
+          explicado de forma didática
         </h1>
         <p className="text-xl text-text-secondary max-w-2xl mx-auto">
-          Transformo conceitos complexos em modelos mentais simples. <br />
-          Sem enrolação, apenas diagramas e código.
+          Artigos profundos sobre arquitetura, reatividade, testes e performance no Angular — com diagramas, analogias e exemplos práticos para você realmente entender o que está fazendo.
         </p>
         <div className="pt-4">
           <Link href={`/posts/${post.slug}`} className="inline-flex items-center px-6 py-3 text-base font-medium text-white bg-primary rounded-md hover:bg-primary/90 transition-colors">

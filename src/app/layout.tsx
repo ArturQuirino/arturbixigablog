@@ -14,8 +14,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Artur Bixiga",
-  description: "Personal blog of Artur Bixiga",
+  title: "Artur Bixiga | Angular Avançado com Didática",
+  description: "Artigos profundos sobre Angular avançado, arquitetura, reatividade, testes e performance — com diagramas, analogias e exemplos práticos.",
 };
 
 export default function RootLayout({
@@ -24,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="pt-BR" suppressHydrationWarning>
       <body className={`${inter.variable} min-h-screen flex flex-col bg-background text-text-primary antialiased font-sans`}>
         <ThemeProvider
             attribute="class"
