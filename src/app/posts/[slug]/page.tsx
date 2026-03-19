@@ -20,6 +20,17 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: `${post.title} - Artur Bixiga`,
     description: post.excerpt,
+    openGraph: {
+      title: post.title,
+      description: post.excerpt,
+      images: post.image ? [{ url: post.image }] : [],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description: post.excerpt,
+      images: post.image ? [post.image] : [],
+    },
   };
 }
 
