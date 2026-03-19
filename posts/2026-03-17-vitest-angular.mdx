@@ -148,9 +148,7 @@ O `TestBed` é esse ambiente. Ele cria um módulo Angular mínimo em memória, c
 > Por que você não pode simplesmente instanciar um `ProductCardComponent` com `new ProductCardComponent()` num teste e chamar `ngOnInit()` manualmente? O que estaria faltando?
 > _(Pense por um momento antes de seguir em frente.)_
 
-{/* DIAGRAMA: Fluxo do TestBed */}
-
-> 📊 **[DIAGRAMA — Ciclo de setup do TestBed]** > _Inserir aqui um diagrama de fluxo linear mostrando as quatro etapas em sequência: (1) `configureTestingModule` — declara o módulo de teste; (2) `compileComponents` — compila templates; (3) `createComponent` — instancia o componente e cria o fixture; (4) `detectChanges` — dispara o primeiro ciclo de renderização e chama `ngOnInit`. Indicar entre as etapas 3 e 4 que o componente existe mas ainda não foi renderizado._
+![Ciclo de setup do TestBed: configureTestingModule (define o ambiente Angular do teste), compileComponents (compila templates e metadados), createComponent (instancia o componente e cria o fixture), detectChanges (executa change detection e renderiza o template)](/images/diagrama-fluxo-vitest.png)
 
 ### Nosso componente de exemplo
 
