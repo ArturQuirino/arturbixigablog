@@ -1,0 +1,287 @@
+---
+title: 'Lazy loading, chunks e standalone no Angular: o que realmente cria um chunk?'
+description: 'Entenda como o bundler decide o que vira um chunk, por que NgModule não é sinônimo de chunk, e por que migrar para standalone sozinho não melhora seu bundle.'
+author: 'Artur Quirino'
+publishedAt: '2026'
+date: '2026-03-23'
+tags: ['angular', 'lazy-loading', 'chunks', 'standalone', 'bundler', 'performance']
+image: '/covers/2026-03-23-lazy-loading-chunks-standalone-angular.png'
+---
+
+# Lazy loading, chunks e standalone no Angular: o que realmente cria um chunk?
+
+## TL;DR
+
+Chunks são arquivos JavaScript separados produzidos pelo bundler — não por módulos, não por componentes standalone. O que instrui o bundler a criar um chunk é um ponto de entrada assíncrono: o `import()` dinâmico. No Angular, lazy loading nas rotas é o mecanismo que introduz esse `import()`. `NgModule` e standalone são estratégias de organização de código que influenciam _o que_ entra num chunk, mas não _se_ o chunk existe. Migrar para standalone sem revisar a estratégia de lazy loading não muda o bundle — e esse artigo explica por quê.
+
+## Pré-requisitos
+
+- Familiaridade com componentes Angular e sistema de rotas
+- Ter trabalhado com `NgModule` ou componentes standalone
+- Noção geral de como um build de frontend funciona — não precisa conhecer bundlers
+
+## O problema
+
+Uma crença circula com frequência em times Angular: cada `NgModule` gera um chunk separado no bundle. Em projetos que migraram para componentes standalone, essa crença ganhou uma versão atualizada: cada componente standalone é um chunk.
+
+Ambas estão erradas — e as consequências práticas não são pequenas. Decisões de arquitetura tomadas com base nessa premissa levam a estruturas de código que não entregam o resultado esperado. Um time pode reorganizar toda a aplicação em módulos menores achando que está melhorando o bundle, sem perceber que nenhum novo chunk foi criado. Outro time pode migrar centenas de componentes para standalone esperando ganho de performance no carregamento, e não observar mudança alguma.
+
+O problema é que chunks, módulos e lazy loading são três conceitos que se relacionam, mas operam em camadas distintas. Misturá-los é o erro. Este artigo separa cada camada e mostra como elas se conectam de fato.
+
+## Índice
+
+1. [O que é um chunk — e quem decide que ele existe](#o-que-é-um-chunk--e-quem-decide-que-ele-existe)
+2. [O papel do bundler no Angular moderno](#o-papel-do-bundler-no-angular-moderno)
+3. [Lazy loading: o mecanismo que instrui o bundler](#lazy-loading-o-mecanismo-que-instrui-o-bundler)
+4. [NgModule e sua relação com chunks](#ngmodule-e-sua-relação-com-chunks)
+5. [Componentes standalone e sua relação com chunks](#componentes-standalone-e-sua-relação-com-chunks)
+6. ["Migrei pra standalone, meu bundle melhorou?" — separando ergonomia de chunking](#migrei-pra-standalone-meu-bundle-melhorou--separando-ergonomia-de-chunking)
+7. [Combinando standalone com lazy loading na prática](#combinando-standalone-com-lazy-loading-na-prática)
+8. [Trade-offs, limitações e contexto de uso](#trade-offs-limitações-e-contexto-de-uso)
+9. [Resumo e conclusão](#resumo-e-conclusão)
+10. [Questões de compreensão](#questões-de-compreensão)
+11. [Referências](#referências)
+
+## O que é um chunk — e quem decide que ele existe
+
+Um chunk é um arquivo JavaScript separado que o browser pode carregar de forma independente. Em vez de um único `main.js` com todo o código da aplicação, o bundler pode dividir o output em múltiplos arquivos — cada um deles é um chunk.
+
+A pergunta central é: quem decide que essa divisão acontece?
+
+A resposta é o bundler. E o bundler toma essa decisão baseado no grafo de dependências do código — especificamente, na presença de **pontos de entrada assíncronos**.
+
+Quando o bundler analisa seu código, ele segue o grafo de importações. Importações estáticas (`import { X } from './x'`) são síncronas: o bundler as inclui no mesmo bundle do arquivo que importa. Importações dinâmicas (`import('./x')`) são assíncronas: o bundler reconhece que aquele código pode ser carregado separadamente, e cria um chunk para ele.
+
+📊 `[DIAGRAMA — entry point síncrono vs assíncrono: código importado estaticamente → entra no bundle principal; código referenciado via import() dinâmico → bundler cria chunk separado]`
+
+Esse é o mecanismo fundamental. Tudo mais — NgModule, standalone, lazy loading no Angular — são camadas acima disso. Entender esse princípio é o que permite raciocinar sobre bundle sem depender de receitas.
+
+## O papel do bundler no Angular moderno
+
+O Angular usou webpack como bundler padrão por anos. A partir do Angular 17, a cadeia de build padrão migrou para esbuild via Vite. O mecanismo de criação de chunks é equivalente nos dois: ambos seguem o mesmo princípio do `import()` dinâmico como gatilho para separação de código.
+
+O que muda com esbuild é performance de build e algumas heurísticas de _code splitting_ automático — situações em que o bundler cria chunks compartilhados sem que você tenha pedido explicitamente. Mas o princípio de que você precisa de um ponto de entrada assíncrono para criar um chunk permanece.
+
+Para os propósitos deste artigo, o que importa saber sobre o bundler é simples: ele não cria chunks por bem-querer. Ele cria chunks quando encontra um `import()` dinâmico no grafo de dependências. Sua responsabilidade como desenvolvedor é decidir onde esses pontos assíncronos devem existir — e o Angular te dá uma forma estruturada de fazer isso via lazy loading nas rotas.
+
+## Lazy loading: o mecanismo que instrui o bundler
+
+Lazy loading no Angular é implementado no roteador. Quando você usa `loadComponent` ou `loadChildren` numa rota, o Angular gera internamente um `import()` dinâmico para o código daquela rota. É esse `import()` que o bundler enxerga e transforma em chunk.
+
+Veja a diferença entre uma rota com e sem lazy loading:
+
+```typescript
+// SEM lazy loading — componente importado estaticamente
+// ProductsComponent entra no bundle principal
+import { ProductsComponent } from './products/products.component';
+
+const routes: Routes = [
+  {
+    path: 'products',
+    component: ProductsComponent,
+  },
+];
+```
+
+```typescript
+// COM lazy loading — import() dinâmico sob o capô
+// O bundler cria um chunk separado para ProductsComponent
+const routes: Routes = [
+  {
+    path: 'products',
+    loadComponent: () => import('./products/products.component').then((m) => m.ProductsComponent),
+  },
+];
+```
+
+O resultado no bundle é diferente não porque você usou `loadComponent` em vez de `component` — mas porque `loadComponent` usa `import()` dinâmico e `component` usa importação estática. A distinção é do bundler, não do Angular.
+
+💡 `[MENTAL MODEL — import() dinâmico como "envelope lacrado": ao processar seu código, o bundler não abre envelopes lacrados imediatamente. Ele os separa e rotula para entrega posterior. O browser só abre o envelope — e executa aquele código — quando o usuário navega para aquela rota.]`
+
+❓ `[Checkpoint — antes de continuar: se você tem uma rota configurada com loadComponent, mas importa o mesmo componente estaticamente em outro lugar da aplicação, o que você acha que acontece com o chunk? Pense por um momento antes de seguir.]`
+
+A resposta para o checkpoint: o bundler percebe que aquele componente é referenciado tanto de forma estática quanto dinâmica. Como a importação estática força a inclusão no bundle principal, o componente vai para o bundle principal — e o chunk separado deixa de existir. Lazy loading só funciona se o código não tiver caminhos de importação estática paralelos.
+
+## NgModule e sua relação com chunks
+
+Um `NgModule` por si só não cria chunk nenhum.
+
+Você pode ter 30 módulos num projeto Angular e todos no bundle principal, se nenhum deles for carregado de forma assíncrona. O módulo é uma unidade de organização de código — uma forma de agrupar componentes, diretivas, pipes e providers. Ele não tem relação direta com chunking.
+
+O que cria o chunk é fazer lazy loading _desse módulo_ via `loadChildren`:
+
+```typescript
+// SEM lazy loading — AdminModule entra no bundle principal
+import { AdminModule } from './admin/admin.module';
+
+const routes: Routes = [
+  {
+    path: 'admin',
+    loadChildren: () => import('./admin/admin.module').then((m) => m.AdminModule),
+  },
+];
+```
+
+```typescript
+// COM lazy loading — o bundler cria um chunk para AdminModule
+// e tudo que AdminModule importa estaticamente
+const routes: Routes = [
+  {
+    path: 'admin',
+    loadChildren: () => import('./admin/admin.module').then((m) => m.AdminModule),
+  },
+];
+```
+
+❓ `[Checkpoint — se você tem um NgModule com 15 componentes declarados e ele é importado diretamente em AppModule (sem loadChildren), quantos chunks adicionais isso cria?]`
+
+Nenhum. Todos os 15 componentes entram no bundle principal junto com o módulo. A presença do `NgModule` é irrelevante para o bundler — o que importa é como o módulo é referenciado no grafo de importações.
+
+## Componentes standalone e sua relação com chunks
+
+A mesma lógica se aplica a componentes standalone. Um componente standalone não cria chunk por ser standalone. Ele cria chunk se e somente se for carregado via `loadComponent` — ou seja, via `import()` dinâmico.
+
+```typescript
+// Componente standalone importado estaticamente
+// Entra no bundle principal — nenhum chunk criado
+import { DashboardComponent } from './dashboard/dashboard.component';
+
+const routes: Routes = [{ path: 'dashboard', component: DashboardComponent }];
+```
+
+```typescript
+// Componente standalone com lazy loading
+// Bundler cria um chunk separado
+const routes: Routes = [
+  {
+    path: 'dashboard',
+    loadComponent: () =>
+      import('./dashboard/dashboard.component').then((m) => m.DashboardComponent),
+  },
+];
+```
+
+O que standalone muda em relação a NgModule, em termos de estrutura de bundle, é que elimina a necessidade de um módulo wrapper para fazer lazy loading. Com NgModule, você precisava de um módulo intermediário que declarava o componente e servia de envelope para o `loadChildren`. Com standalone, você aponta diretamente para o componente com `loadComponent`. Menos indireção — mas o mecanismo de criação de chunk é idêntico.
+
+📊 `[DIAGRAMA — comparação: loadChildren (NgModule) → chunk; loadComponent (standalone) → chunk; import estático de NgModule → sem chunk; import estático de standalone → sem chunk. O padrão é o mesmo nos dois casos.]`
+
+## "Migrei pra standalone, meu bundle melhorou?" — separando ergonomia de chunking
+
+Essa é a confusão mais importante do artigo, e merece ser destrinchada com cuidado.
+
+O argumento que circula em times é parecido com este: standalone elimina módulos, módulos inchavam o bundle, logo standalone enxuga o bundle. A lógica parece coerente à primeira vista. Mas ela falha em um ponto fundamental: módulos não "inchavam o bundle".
+
+O bundle reflete o código que você importa — não a presença de módulos. Um `NgModule` com 10 componentes declarados tem o overhead do próprio arquivo de módulo (pequeno) mais os 10 componentes. Um componente standalone que importa os mesmos 10 componentes diretamente em `imports: []` tem exatamente o mesmo código no bundle. O NgModule não adicionava peso — ele era um mecanismo de agrupamento.
+
+**O que standalone realmente muda em termos de bundle:**
+
+Há dois ganhos concretos, mas ambos são específicos e modestos:
+
+O primeiro é _tree-shaking de providers_ mais preciso. Componentes standalone importam suas dependências diretamente, o que permite ao bundler rastrear com mais granularidade o que é de fato usado. Em projetos com muitos providers declarados em módulos grandes, isso pode resultar em remoção de código não utilizado que antes escapava do tree-shaking. O ganho existe — mas depende muito do perfil do projeto.
+
+O segundo é a _eliminação de módulos wrapper_. Com NgModule, o padrão de lazy loading exigia um módulo cuja única função era servir de envelope para o `loadChildren`. Esse módulo não tinha lógica — era boilerplate puro. Standalone elimina esse arquivo desnecessário. Mas estamos falando de bytes de overhead de organização, não de redução significativa de bundle.
+
+**O que não muda:**
+
+Se você tinha `loadChildren` apontando para um `NgModule` e migrou para `loadComponent` apontando para um componente standalone, o chunk continua existindo pelo mesmo motivo: o `import()` dinâmico na rota. O tamanho do chunk vai depender do código dentro daquele componente e de suas dependências — não da presença ou ausência do módulo wrapper.
+
+Para tornar isso concreto: imagine uma aplicação com 40 componentes, todos no bundle principal porque nenhuma rota usa lazy loading. Migrar todos os 40 para standalone não cria nenhum chunk novo e não reduz o bundle principal. O único caminho para melhorar o chunking é introduzir lazy loading onde não havia — e isso é uma decisão de roteamento, não de organização de componentes.
+
+💡 `[MENTAL MODEL — standalone é um eixo; lazy loading é outro eixo. São decisões independentes. Você pode ter uma aplicação 100% standalone com um único chunk enorme, e uma aplicação baseada em NgModule com chunking excelente. A intersecção dos dois eixos é onde você consegue o melhor dos dois mundos: ergonomia de standalone com estratégia deliberada de lazy loading.]`
+
+A pergunta certa a fazer antes de uma migração para standalone não é "isso vai melhorar meu bundle?" — é "estou migrando por ergonomia, manutenibilidade e tree-shaking de providers, ou esperando um ganho de bundle que provavelmente não vai aparecer?"
+
+⚠️ `[ARMADILHA — o argumento do "módulo vazio": times que perceberam que módulos wrapper não tinham lógica às vezes concluíram que "módulos são overhead de bundle". A conclusão errada leva a migrar para standalone esperando melhora de bundle. A conclusão certa é: módulos wrapper eram overhead de *organização*, não de bundle — e standalone os elimina por essa razão, não por razão de performance.]`
+
+## Combinando standalone com lazy loading na prática
+
+Com a base conceitual estabelecida, a estrutura prática fica direta.
+
+**`loadComponent` com standalone:**
+
+```typescript
+// app.routes.ts
+import { Routes } from '@angular/router';
+
+export const routes: Routes = [
+  {
+    path: 'products',
+    loadComponent: () =>
+      import('./products/product-list.component').then((m) => m.ProductListComponent),
+  },
+  {
+    path: 'admin',
+    loadChildren: () => import('./admin/admin.routes').then((m) => m.adminRoutes),
+  },
+];
+```
+
+**`loadChildren` com array de rotas standalone** (sem módulo wrapper):
+
+```typescript
+// admin/admin.routes.ts
+import { Routes } from '@angular/router';
+
+export const adminRoutes: Routes = [
+  {
+    path: '',
+    loadComponent: () =>
+      import('./admin-dashboard.component').then((m) => m.AdminDashboardComponent),
+  },
+  {
+    path: 'users',
+    loadComponent: () => import('./users/user-list.component').then((m) => m.UserListComponent),
+  },
+];
+```
+
+Nesse padrão, `loadChildren` não aponta mais para um `NgModule` — aponta para um array de rotas. Cada `loadComponent` dentro desse array pode gerar seu próprio chunk. O Angular e o bundler tratam cada `import()` dinâmico de forma independente.
+
+O que isso significa na prática: você tem controle granular sobre o chunking sem precisar de módulos intermediários. Cada componente que merece ser carregado de forma assíncrona pode ser configurado diretamente na rota.
+
+## Trade-offs, limitações e contexto de uso
+
+**Granularidade de chunks tem custo.** Um chunk muito pequeno tem overhead de requisição HTTP — o browser precisa de um round-trip pra buscar aquele arquivo. Chunks muito grandes atrasam a interação inicial. Não existe resposta universal para o tamanho ideal, mas uma heurística prática: lazy loading faz mais sentido em rotas que uma parcela significativa dos usuários nunca vai acessar numa sessão típica — áreas administrativas, configurações, fluxos de checkout, dashboards secundários.
+
+**Shared chunks aparecem sem você pedir.** Quando dois ou mais chunks lazy dependem do mesmo código, o bundler pode criar automaticamente um chunk compartilhado para aquele código. Isso é um comportamento correto — evita duplicação. Mas explica por que você às vezes vê mais chunks no output do que esperava. Se `ProductCardComponent` é usado tanto na rota de produtos quanto na de favoritos, e ambas têm lazy loading, o bundler pode isolá-lo num chunk separado para não duplicá-lo nos dois.
+
+**Preloading muda a equação de UX, não de bundle.** Lazy loading adia o carregamento; preloading carrega em background após o carregamento inicial. O Angular oferece `PreloadAllModules` e a interface `PreloadingStrategy` para estratégias customizadas. Isso não afeta o tamanho dos chunks — afeta quando eles são baixados. Vale um artigo separado.
+
+**Standalone melhora tree-shaking de providers — mas o ganho depende do projeto.** Em aplicações com muitos providers declarados em módulos grandes e compartilhados, a migração para standalone pode revelar código que não estava sendo removido corretamente. Em aplicações com providers já bem organizados, o ganho é marginal.
+
+**Migração de NgModule para standalone não exige revisar lazy loading.** As duas decisões são independentes. Você pode migrar para standalone incrementalmente sem alterar uma única rota. E pode introduzir lazy loading em rotas existentes sem migrar nenhum componente para standalone.
+
+## Resumo e conclusão
+
+Chunks são produzidos pelo bundler quando ele encontra um `import()` dinâmico no grafo de dependências. No Angular, lazy loading nas rotas é o mecanismo que introduz esse `import()`. `NgModule` e standalone são estratégias de organização de código — elas influenciam _o que_ entra num chunk, mas não _se_ o chunk existe.
+
+A confusão entre esses três conceitos tem consequências práticas: times reorganizam módulos esperando melhora de bundle, migram para standalone esperando chunks novos, e não observam o resultado esperado — porque a variável que controla chunking é outra.
+
+A pergunta certa ao tomar decisões de bundle não é "devo usar módulo ou standalone?" — é "quais partes da aplicação o usuário realmente não precisa no carregamento inicial?" A resposta a essa pergunta define onde lazy loading deve existir. Standalone ou NgModule é uma decisão separada, com critérios separados: ergonomia, manutenibilidade, tree-shaking de providers.
+
+Quando essas duas decisões são tomadas com consciência e independência, você tem o melhor dos dois mundos: código bem organizado e bundle bem estruturado.
+
+## Questões de compreensão
+
+1. Um componente standalone importado diretamente em outro componente standalone (via `imports: []`) cria um chunk separado? Por quê?
+
+2. Um time tem 30 `NgModules` na aplicação. Nenhuma rota usa `loadChildren`. Quantos chunks existem no bundle? O que precisaria mudar para que chunks fossem criados?
+
+3. Qual é a diferença prática, em termos de bundle gerado, entre `loadChildren` apontando para um `NgModule` e `loadChildren` apontando para um array de rotas standalone?
+
+4. Um componente é referenciado com `loadComponent` em uma rota, mas também é importado estaticamente em outro componente da aplicação. O que acontece com o chunk que seria criado para ele?
+
+5. O que é um shared chunk e em que situação o bundler decide criá-lo automaticamente?
+
+6. Um time migrou todos os componentes da aplicação para standalone mas não alterou nenhuma rota. O que você esperaria observar no bundle gerado antes e depois da migração, e por quê?
+
+7. Você está revisando a arquitetura de bundle de uma aplicação Angular. Quais critérios você usaria para decidir quais rotas merecem lazy loading e quais não merecem?
+
+## Referências
+
+- [Angular — Lazy loading feature modules](https://angular.dev/guide/ngmodules/lazy-loading)
+- [Angular — Standalone components](https://angular.dev/guide/components/importing)
+- [Angular — Route-level code splitting](https://angular.dev/guide/performance/route-level-code-splitting)
+- [esbuild — Code splitting](https://esbuild.github.io/api/#splitting)
+- [webpack — Code splitting](https://webpack.js.org/guides/code-splitting/)
+- [web.dev — Reduce JavaScript payloads with code splitting](https://web.dev/articles/reduce-javascript-payloads-with-code-splitting)
