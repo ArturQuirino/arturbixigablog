@@ -12,11 +12,11 @@ image: '/covers/2026-03-27-lazy-loading-chunks.png'
 
 ## O problema
 
-Uma crença circula com frequência em times Angular: cada `NgModule` gera um chunk separado no bundle. Em projetos que migraram para componentes standalone, essa crença ganhou uma versão atualizada: cada componente standalone é um chunk.
+Em algum momento de um code review, alguém pode dizer: "cada `NgModule` gera um chunk separado no bundle". E isso vai soar razoável. Em projetos que migraram para componentes standalone, essa crença ganhou uma versão atualizada: cada componente standalone é um chunk.
 
-Ambas estão erradas — e as consequências práticas não são pequenas. Decisões de arquitetura tomadas com base nessa premissa levam a estruturas de código que não entregam o resultado esperado. Um time pode reorganizar toda a aplicação em módulos menores achando que está melhorando o bundle, sem perceber que nenhum novo chunk foi criado. Outro time pode migrar centenas de componentes para standalone esperando ganho de performance no carregamento, e não observar mudança alguma.
+O problema é que apesar de soar razoável, ambas estão erradas — e as consequências práticas não são pequenas. Decisões de arquitetura tomadas com base nessa premissa levam a estruturas de código que não entregam o resultado esperado. Um time pode reorganizar toda a aplicação em módulos menores achando que está melhorando o bundle, sem perceber que nenhum novo chunk foi criado. Outro time pode migrar centenas de componentes para standalone esperando ganho de performance no carregamento, e não observar mudança alguma.
 
-O problema é que chunks, módulos e lazy loading são três conceitos que se relacionam, mas operam em camadas distintas. Misturá-los é o erro. Este artigo separa cada camada e mostra como elas se conectam de fato.
+Chunks, módulos e lazy loading são três conceitos que se relacionam, mas operam em camadas distintas. Misturá-los é o erro. Entender as diferenças é o que permite realmente controlar o que o usuário baixa — e quando.
 
 ## TL;DR
 
