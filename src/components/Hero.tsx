@@ -20,30 +20,50 @@ export default function Hero({ post }: HeroProps) {
           explicado de forma didática
         </h1>
         <p className="text-xl text-text-secondary max-w-2xl mx-auto">
-          Artigos profundos sobre arquitetura, reatividade, testes e performance no Angular — com diagramas, analogias e exemplos práticos para você realmente entender o que está fazendo.
+          Artigos profundos sobre arquitetura, reatividade, testes e performance no Angular — com
+          diagramas, analogias e exemplos práticos para você realmente entender o que está fazendo.
         </p>
         <div className="pt-4">
-          <Link href={`/posts/${post.slug}`} className="inline-flex items-center px-6 py-3 text-base font-medium text-white bg-primary rounded-md hover:bg-primary/90 transition-colors">
-            Ler Último Post
-            <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+          <Link
+            href={`/posts/${post.slug}`}
+            className="inline-flex items-center px-6 py-3 text-base font-medium text-white bg-primary rounded-md hover:bg-primary/90 transition-colors"
+          >
+            Ler último post
+            <svg
+              className="w-4 h-4 ml-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M14 5l7 7m0 0l-7 7m7-7H3"
+              />
             </svg>
           </Link>
         </div>
       </div>
 
-      <Link href={`/posts/${post.slug}`} className="relative w-full max-w-5xl mt-12 aspect-video rounded-xl overflow-hidden shadow-2xl border border-text-secondary/20 block group">
-         <Image
-            src={post.image || '/placeholder_image.png'}
-            alt={post.title}
-            fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-            priority
-          />
-          <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent text-white text-left">
-            <h2 className="text-2xl font-bold group-hover:text-brand-text transition-colors">{post.title}</h2>
-            <p className="mt-2 text-gray-200 line-clamp-2">{post.excerpt}</p>
-          </div>
+      <Link
+        href={`/posts/${post.slug}`}
+        className="relative w-full max-w-5xl mt-12 aspect-video rounded-xl overflow-hidden shadow-2xl border border-text-secondary/20 block group"
+      >
+        <Image
+          src={post.image || '/placeholder_image.png'}
+          alt={post.title}
+          fill
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          priority
+        />
+        <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent text-white text-left">
+          <h2 className="text-2xl font-bold group-hover:text-brand-text transition-colors">
+            {post.title}
+          </h2>
+          <p className="mt-2 text-gray-200 line-clamp-2">{post.excerpt}</p>
+        </div>
       </Link>
     </section>
   );
