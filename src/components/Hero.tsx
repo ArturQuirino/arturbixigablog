@@ -59,7 +59,7 @@ export default function Hero({ post }: HeroProps) {
           priority
         />
         <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent text-white text-left">
-          <h2 className="text-2xl font-bold group-hover:text-brand-text transition-colors">
+          <h2 className="text-2xl font-bold group-hover:text-[#A78BFA] transition-colors">
             {post.title}
           </h2>
           <p className="mt-2 text-gray-200 line-clamp-2">{post.excerpt}</p>
