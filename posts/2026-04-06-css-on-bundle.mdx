@@ -1,0 +1,346 @@
+---
+title: 'CSS que você não escreveu: como o Angular transforma seus estilos no build'
+description: 'Entre o arquivo .css que você escreve e o CSS que chega ao navegador, existe uma etapa de transformação que a maioria dos desenvolvedores desconhece. Entender esse processo muda como você escreve e como você depura estilos.'
+author: Artur Quirino
+publishedAt: '2026'
+date: '2026-04-06'
+tags: [angular, css, build, postcss, lightning-css, autoprefixer, compatibilidade]
+image: /covers/2026-04-06-css-on-bundle.png
+---
+
+## O problema
+
+Um componente de layout precisava que um elemento ocupasse toda a altura disponível na viewport. O desenvolvedor sabia que `height: stretch` ainda não tinha suporte universal, então adicionou as três variantes manualmente — a forma correta de lidar com isso:
+
+```css
+.container {
+  height: -webkit-fill-available;
+  height: -moz-available;
+  height: stretch;
+}
+```
+
+Algum tempo depois, testando no Safari, ele notou um comportamento inesperado. O `height: -webkit-fill-available` estava causando um problema visual específico naquele browser — e a suspeita era que o prefixo WebKit era o culpado. A decisão foi remover apenas aquela linha e deixar as outras duas:
+
+```css
+.container {
+  /* height: -webkit-fill-available; <- removido */
+  height: -moz-available;
+  height: stretch;
+}
+```
+
+Simples. Cirúrgico. Faz sentido.
+
+Ele rodou o build, abriu o bundle gerado para confirmar a mudança — e `height: -webkit-fill-available` estava lá. Exatamente onde ele tinha removido.
+
+A primeira reação foi checar se tinha salvo o arquivo. Tinha. Outras alterações feitas no mesmo componente apareciam corretamente no output. Só aquela linha removida insistia em voltar, como se o build estivesse ignorando a edição.
+
+Não era cache. Não era o editor. Era o Angular — adicionando de volta uma propriedade que o desenvolvedor tinha explicitamente removido do source.
+
+E continuaria adicionando, independente de quantas vezes ele removesse.
+
+---
+
+## TL;DR
+
+O Angular processa seu CSS através de uma ferramenta de transformação — **Autoprefixer** (em projetos com webpack) ou **Lightning CSS** (em projetos com esbuild) — que analisa suas propriedades e injeta automaticamente variantes prefixadas para garantir compatibilidade com os navegadores declarados no `.browserslistrc`. O resultado prático: o CSS que você escreve não é o CSS que chega ao navegador, e esse gap é uma fonte legítima de confusão quando você não sabe que ele existe.
+
+---
+
+## Pré-requisitos
+
+- Familiaridade com CSS, incluindo a ideia de vendor prefixes
+- Noção básica do processo de build do Angular (o que é `ng build`, o que vai para a pasta `dist/`)
+- Saber o que são PostCSS e esbuild é útil, mas não obrigatório — vou explicar o essencial no caminho
+
+---
+
+## Índice
+
+1. O que acontece com o seu CSS entre o source e o browser
+2. As duas ferramentas que fazem esse trabalho
+3. Por que `height: stretch` vira três declarações
+4. Outros exemplos de transformações automáticas
+5. O `.browserslistrc`: quem decide o que é transformado
+6. Como verificar o que está sendo gerado
+7. Trade-offs, limitações e contexto de uso
+8. Resumo e conclusão
+9. Questões de compreensão
+10. Referências
+
+---
+
+## O que acontece com o seu CSS entre o source e o browser
+
+Quando você escreve estilos num componente Angular, eles passam por uma pipeline de transformações antes de chegar ao navegador. O Angular não pega seu `.css` e o serve diretamente — ele processa.
+
+Essa pipeline tem, em linhas gerais, quatro estágios:
+
+1. **Resolução do componente** — o Angular lê o `styleUrls` ou `styles` do decorator e prepara o CSS para encapsulamento (view encapsulation)
+2. **Transformação de compatibilidade** — o CSS é analisado e expandido para garantir suporte à lista de navegadores do projeto
+3. **Minificação** — no build de produção, o CSS é comprimido
+4. **Bundling** — os estilos são emitidos como parte do bundle final
+
+O estágio 2 é o protagonista deste artigo. É nele que propriedades como `height: stretch` ganham seus prefixos — e onde o CSS que você vê no editor diverge do CSS que o navegador recebe.
+
+![Pipeline do CSS no build do Angular: componente (.css/.scss), transformação de compatibilidade com Autoprefixer ou Lightning CSS (Can I Use e .browserslistrc), minificação em produção e bundle final em dist/.](/images/2026-04-06-css-on-bundle/Diagrama%201%20%C2%B7%20Pipeline%20do%20Build%20Angular.png)
+
+---
+
+## As duas ferramentas que fazem esse trabalho
+
+A ferramenta responsável pela transformação muda dependendo da versão do Angular e do builder configurado.
+
+### Builder com webpack (Angular ≤ 16)
+
+Até o Angular 16, o builder padrão era baseado em **webpack**. Nessa configuração, o CSS passa pelo **PostCSS** — uma ferramenta que aplica transformações via plugins. O plugin responsável pelos prefixos é o **Autoprefixer**.
+
+O Autoprefixer lê seu CSS, consulta o banco de dados do [Can I Use](https://caniuse.com/) e o arquivo `.browserslistrc` do projeto, e decide quais prefixos adicionar com base nos navegadores que você declarou como suporte.
+
+### Builder com esbuild (Angular ≥ 17)
+
+A partir do Angular 17, o builder padrão passou a ser baseado em **esbuild** — significativamente mais rápido por ser escrito em Go. Nessa configuração, o processamento de CSS é feito pelo **Lightning CSS**, uma biblioteca em Rust que funciona como parser, transformador e minificador de CSS em uma ferramenta só.
+
+O Lightning CSS faz o mesmo trabalho que o Autoprefixer fazia, mas de forma integrada ao pipeline do esbuild. Ele também respeita o `.browserslistrc` para decidir quais transformações aplicar.
+
+**O comportamento do ponto de vista do desenvolvedor é equivalente**: em ambos os casos, propriedades modernas são expandidas em variantes prefixadas quando necessário. A diferença é de arquitetura interna e velocidade de build — não de resultado.
+
+![Comparação dos pipelines: Angular ≤ 16 (webpack) com PostCSS e Autoprefixer; Angular ≥ 17 (esbuild) com Lightning CSS; o CSS final é equivalente.](/images/2026-04-06-css-on-bundle/Diagrama%202%20%C2%B7%20webpack%20vs%20esbuild.png)
+
+---
+
+## Por que `height: stretch` vira três declarações
+
+Agora o caso concreto do início do artigo.
+
+A propriedade `height: stretch` instrui o navegador a preencher todo o espaço disponível no container — descontando margens. É sutil, mas diferente de `height: 100%`: o `100%` é relativo ao tamanho declarado do pai, enquanto `stretch` é relativo ao espaço que sobra depois que margens e outros elementos são considerados.
+
+O problema é que `stretch` ainda não tem suporte amplo. Os navegadores implementaram esse comportamento antes da especificação ser finalizada, e cada um usou seu próprio nome:
+
+| Variante                 | Contexto                         |
+| ------------------------ | -------------------------------- |
+| `-webkit-fill-available` | Chrome, Safari, Edge (Chromium)  |
+| `-moz-available`         | Firefox                          |
+| `stretch`                | Valor padrão (suporte crescente) |
+
+Se você escrever apenas `height: stretch`, navegadores que só reconhecem a variante prefixada vão ignorar essa declaração inteiramente — e o elemento não vai se comportar como esperado.
+
+A transformação automática do Angular resolve isso:
+
+```css
+/* O que você escreve */
+.container {
+  height: stretch;
+}
+
+/* O que chega ao browser (dependendo do .browserslistrc) */
+.container {
+  height: -webkit-fill-available;
+  height: -moz-available;
+  height: stretch;
+}
+```
+
+A ordem das declarações não é aleatória: o navegador lê de cima para baixo e aplica a **última declaração que ele entende**. Se ele já suporta `stretch`, usa `stretch`. Se não, usa `-moz-available` ou `-webkit-fill-available`. A propriedade mais moderna sempre fica por último — é uma cascata intencional de compatibilidade.
+
+![Cascata de compatibilidade para height: stretch: cada navegador aplica a última declaração que reconhece (-webkit-fill-available, -moz-available ou stretch).](/images/2026-04-06-css-on-bundle/Diagrama%203%20%C2%B7%20Cascata%20de%20Compatibilidade.png)
+
+Isso explica o mistério do início do artigo: quando o desenvolvedor removeu `-webkit-fill-available` do source, o Angular a reinjetou no build — porque `height: stretch` é, para a ferramenta de transformação, uma instrução implícita de "garanta compatibilidade com todos os browsers da sua lista". A remoção manual conflitava com essa instrução, e a ferramenta vencia sempre.
+
+---
+
+## Outros exemplos de transformações automáticas
+
+`height: stretch` não é caso isolado. Várias propriedades CSS modernas passam por expansão similar. Os exemplos abaixo são comuns em projetos Angular reais.
+
+### `user-select`
+
+Controla se o usuário pode selecionar texto. Ainda requer prefixo para Safari mais antigo.
+
+```css
+/* Source */
+.card-header {
+  user-select: none;
+}
+
+/* Output */
+.card-header {
+  -webkit-user-select: none;
+  user-select: none;
+}
+```
+
+### `appearance`
+
+Muito usado em resets de estilo para inputs e botões — remove o visual nativo do browser.
+
+```css
+/* Source */
+button {
+  appearance: none;
+}
+
+/* Output */
+button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+```
+
+### `backdrop-filter`
+
+Efeito de desfoque atrás de elementos semi-transparentes — muito usado em modais e navegações.
+
+```css
+/* Source */
+.modal-overlay {
+  backdrop-filter: blur(8px);
+}
+
+/* Output */
+.modal-overlay {
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+```
+
+O `-webkit-` ainda é necessário para versões do Safari anteriores à 18.
+
+### `text-size-adjust`
+
+Controla o comportamento de ajuste automático de tamanho de texto em dispositivos móveis. Quase sempre aparece em resets CSS.
+
+```css
+/* Source */
+html {
+  text-size-adjust: 100%;
+}
+
+/* Output */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+```
+
+O padrão em todos esses casos é o mesmo: você escreve a propriedade padrão, sem prefixo; a ferramenta injeta as variantes que os navegadores do seu browserslist ainda precisam.
+
+---
+
+## O `.browserslistrc`: quem decide o que é transformado
+
+As transformações não são fixas. O que o Autoprefixer ou Lightning CSS decide adicionar depende dos navegadores que o projeto declara como suporte.
+
+Essa configuração fica no arquivo `.browserslistrc` na raiz do projeto — ou na chave `"browserslist"` dentro do `package.json`. Um projeto gerado pelo Angular CLI começa com algo assim:
+
+```
+# .browserslistrc
+last 2 Chrome versions
+last 1 Firefox version
+last 2 Edge major versions
+last 2 Safari major versions
+last 2 iOS major versions
+Firefox ESR
+```
+
+Essa lista é lida por uma biblioteca chamada **Browserslist**, que a traduz para um conjunto concreto de versões de navegadores. Com base nesse conjunto, a ferramenta de transformação decide, propriedade por propriedade:
+
+> "O Chrome das últimas 2 versões já suporta `stretch` nativamente? Se não, injeta o prefixo."  
+> "O Safari das últimas 2 versões já suporta `user-select` sem prefixo? Se não, injeta."
+
+**Isso significa que as transformações mudam com o tempo.** À medida que os navegadores evoluem e as versões antigas saem da lista, prefixos que eram necessários deixam de ser injetados — sem que você precise mudar nada no seu CSS. O source permanece o mesmo; o output encolhe sozinho.
+
+Para ver exatamente quais browsers sua configuração atual cobre, rode no terminal:
+
+```bash
+npx browserslist
+```
+
+A saída lista cada browser e versão que seu browserslist resolve naquele momento. É a forma mais direta de entender o que está guiando as decisões da ferramenta.
+
+---
+
+## Como verificar o que está sendo gerado
+
+Há formas práticas de inspecionar o CSS gerado e confirmar as transformações.
+
+### Build sem minificação
+
+```bash
+ng build --configuration=development
+```
+
+No build de desenvolvimento, o CSS fica legível — sem compressão agressiva. Os arquivos ficam na pasta `dist/`. Procure os arquivos `.css` e abra no editor: você vai ver as propriedades exatamente como chegam ao browser.
+
+### DevTools do browser
+
+Com a aplicação rodando via `ng serve`, abra o DevTools, vá em **Elements** e inspecione os `<style>` tags injetados pelo Angular. O CSS que você ver ali já está processado — com os prefixos adicionados. Você pode comparar com o seu source para ver a diferença.
+
+### Source maps
+
+Se os source maps estiverem habilitados, o DevTools consegue mapear o CSS processado de volta para o arquivo original. Isso torna explícita a diferença entre o que você escreveu e o que foi emitido — e é útil quando você precisa entender transformações específicas.
+
+---
+
+## Trade-offs, limitações e contexto de uso
+
+### O que você ganha
+
+**Compatibilidade sem esforço manual.** Você escreve CSS padrão e moderno; a ferramenta cuida da compatibilidade. Não precisa memorizar quais propriedades ainda precisam de qual prefixo — nem acompanhar quando esses prefixos podem ser removidos.
+
+**Source mais limpo.** Sem prefixos no source, o código reflete a intenção — não os detalhes de implementação de compatibilidade. Quando o suporte nativo chegar, não há nada pra limpar.
+
+**Sincronização com dados reais.** As ferramentas consultam o Can I Use, não um conhecimento estático. As decisões refletem o estado atual do suporte, não o que era verdade quando o projeto foi criado.
+
+### O que você precisa entender
+
+**O CSS do source ≠ o CSS do output.** Esse gap é uma fonte legítima de confusão quando você não sabe que ele existe. Saber que existe muda como você depura problemas: antes de assumir que o browser está ignorando uma propriedade sua, vale confirmar o que de fato está no bundle.
+
+**Você não controla a transformação por propriedade.** A ferramenta age de forma global, baseada no browserslist. Se você quiser que uma propriedade específica _não_ seja prefixada, precisaria de configuração adicional no PostCSS ou no Lightning CSS — não é algo trivial.
+
+**O `.browserslistrc` é o ponto de controle real.** Quer menos prefixos? Restrinja a lista de browsers. Quer compatibilidade mais ampla? Expanda. É nessa configuração que você decide o trade-off entre abrangência de suporte e tamanho de bundle — não na mão.
+
+**Os prefixos são temporários por design.** Eles existem enquanto os browsers na sua lista ainda precisam deles. À medida que o suporte nativo cresce e versões antigas saem do ar, o output encolhe automaticamente. Não é dívida técnica — é um mecanismo de transição.
+
+### Quando isso pode causar problema
+
+Se o seu CSS depende de uma cascata muito específica de declarações, a injeção automática de prefixos pode alterar essa cascata de formas inesperadas. Isso é raro na prática, mas acontece. Saber que a ferramenta existe te dá o contexto para investigar quando o comportamento não é o esperado.
+
+---
+
+## Resumo e conclusão
+
+O Angular não serve seu CSS diretamente ao browser. Entre o arquivo que você escreve e o CSS que chega ao navegador, existe uma etapa de transformação — feita pelo Autoprefixer em projetos com webpack, ou pelo Lightning CSS em projetos com esbuild.
+
+Essa ferramenta analisa suas propriedades, consulta os dados de suporte dos browsers declarados no `.browserslistrc`, e injeta automaticamente as variantes prefixadas necessárias. É por isso que `height: stretch` pode se tornar três declarações no bundle. E é por isso que propriedades removidas do source continuam aparecendo no output — elas não são resquícios de um merge mal feito; elas estão sendo reinjetadas ativamente pelo build.
+
+O benefício é real: você escreve CSS padrão e a compatibilidade é gerenciada pela ferramenta, de forma automática e sincronizada com dados reais de suporte. O custo é um gap entre source e output que, se você não sabe que existe, vira um mistério difícil de debugar.
+
+Agora você sabe que existe.
+
+---
+
+## Questões de compreensão
+
+1. Por que o arquivo `.browserslistrc` afeta o CSS gerado no build? Qual a relação entre a lista de browsers e as decisões da ferramenta de transformação?
+
+2. Qual a diferença entre escrever `height: stretch` e escrever manualmente as três variantes (`-webkit-fill-available`, `-moz-available`, `stretch`) no seu source? Qual abordagem é mais manutenível a longo prazo, e por quê?
+
+3. Se você remover um browser antigo do `.browserslistrc`, o que acontece com os prefixos que eram necessários apenas para aquele browser? Essa mudança exige alteração no seu CSS fonte?
+
+4. Por que a ordem das declarações geradas (`-webkit-fill-available`, `-moz-available`, `stretch`) importa? O que aconteceria se `stretch` fosse declarado primeiro?
+
+5. Um colega te diz que está vendo uma propriedade no bundle que não existe em nenhum arquivo `.css` do projeto. Qual seria seu processo de investigação para entender de onde ela veio?
+
+---
+
+## Referências
+
+- [Autoprefixer — GitHub](https://github.com/postcss/autoprefixer)
+- [Lightning CSS — Documentação oficial](https://lightningcss.dev/)
+- [Browserslist — GitHub](https://github.com/browserslist/browserslist)
+- [Can I Use — height: stretch](https://caniuse.com/mdn-css_properties_height_stretch)
+- [PostCSS — GitHub](https://github.com/postcss/postcss)
+- [Angular CLI — Configuração de build](https://angular.dev/tools/cli/build)
+- [MDN Web Docs — height: stretch](https://developer.mozilla.org/en-US/docs/Web/CSS/height)
