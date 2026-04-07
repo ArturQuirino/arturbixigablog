@@ -118,11 +118,28 @@ A propriedade `height: stretch` instrui o navegador a preencher todo o espaço d
 
 O problema é que `stretch` ainda não tem suporte amplo. Os navegadores implementaram esse comportamento antes da especificação ser finalizada, e cada um usou seu próprio nome:
 
-| Variante                 | Contexto                         |
-| ------------------------ | -------------------------------- |
-| `-webkit-fill-available` | Chrome, Safari, Edge (Chromium)  |
-| `-moz-available`         | Firefox                          |
-| `stretch`                | Valor padrão (suporte crescente) |
+<table>
+  <thead>
+    <tr>
+      <th>Variante</th>
+      <th>Contexto</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>-webkit-fill-available</code></td>
+      <td>Chrome, Safari, Edge (Chromium)</td>
+    </tr>
+    <tr>
+      <td><code>-moz-available</code></td>
+      <td>Firefox</td>
+    </tr>
+    <tr>
+      <td><code>stretch</code></td>
+      <td>Valor padrão (suporte crescente)</td>
+    </tr>
+  </tbody>
+</table>
 
 Se você escrever apenas `height: stretch`, navegadores que só reconhecem a variante prefixada vão ignorar essa declaração inteiramente — e o elemento não vai se comportar como esperado.
 
