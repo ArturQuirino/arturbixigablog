@@ -1,0 +1,540 @@
+---
+title: 'Formatos de fontes para a web: do TTF ao WOFF2 — o que cada um é, como funcionam e qual usar'
+description: 'TTF, OTF, EOT, WOFF, WOFF2 — por que existem tantos formatos de fonte para a web, o que cada um resolve e qual você deve escolher hoje.'
+author: 'Artur Quirino'
+publishedAt: '2026'
+date: '2026-04-14'
+tags: [angular, css, performance, fonts, woff2, typography, web]
+image: /covers/2026-04-14-web-font-formats.png
+---
+
+## O problema
+
+Um desenvolvedor baixou uma fonte customizada para usar em um projeto Angular. Achou o arquivo `.ttf` no site da foundry, jogou na pasta de assets, declarou o `@font-face` no `styles.scss` e pronto — funcionou de primeira no Chrome, ficou com boa aparência e o assunto pareceu encerrado.
+
+Semanas depois, dois problemas apareceram. O primeiro: o time de QA reportou que a fonte não carregava em um ambiente corporativo com IE11. O segundo: o Lighthouse começou a apontar a fonte como um dos maiores itens de impacto na performance de carregamento — o arquivo `.ttf` tinha 280kb.
+
+O desenvolvedor olhou para a declaração `@font-face` e percebeu que nunca havia entendido o que aquela lista de formatos (`woff2`, `woff`, `truetype`) de fato significava. Tinha copiado de um tutorial, ajustado os caminhos e seguido em frente.
+
+Esse artigo preenche exatamente esse gap: o que é cada formato, por que existem tantos, como o browser decide qual usar — e o que você deve escolher hoje.
+
+---
+
+## TL;DR
+
+**WOFF2** é o formato ideal para a web hoje. Maior compressão, suporte em >96% dos browsers. **WOFF** vale como fallback se você ainda precisar suportar browsers mais antigos (IE9+). **TTF/OTF** são formatos de desktop — funcionam na web, mas sem compressão, então evite servir `.ttf` diretamente quando puder. **EOT** era o formato da Microsoft para IE antigo; se você não precisa suportar IE, ignore. **SVG Fonts** estão obsoletos. **Variable fonts** são uma evolução do OpenType, normalmente distribuídos como WOFF2; se você usa múltiplos pesos de uma família, valem atenção.
+
+---
+
+## Pré-requisitos
+
+- Familiaridade com CSS, incluindo o básico de `@font-face`
+- Noção de como o Angular serve assets estáticos (pasta `assets`, `angular.json`)
+- Entender o conceito de compressão de arquivo é útil, mas vou cobrir o necessário no caminho
+
+---
+
+## Índice
+
+1. [Por que existem múltiplos formatos?](#por-que-existem-múltiplos-formatos)
+2. [Os formatos, um por um](#os-formatos-um-por-um)
+3. [O que muda na prática: tamanho e compressão](#o-que-muda-na-prática-tamanho-e-compressão)
+4. [Como o browser decide qual formato usar](#como-o-browser-decide-qual-formato-usar)
+5. [Suporte a browsers hoje](#suporte-a-browsers-hoje)
+6. [Usando fontes em projetos Angular](#usando-fontes-em-projetos-angular)
+7. [Variable fonts: quando uma fonte substitui várias](#variable-fonts-quando-uma-fonte-substitui-várias)
+8. [O que usar hoje — recomendação direta](#o-que-usar-hoje--recomendação-direta)
+9. [Resumo e conclusão](#resumo-e-conclusão)
+10. [Questões de compreensão](#questões-de-compreensão)
+11. [Referências](#referências)
+
+---
+
+## Por que existem múltiplos formatos?
+
+Fontes digitais nasceram para desktop, não para a web. Os primeiros formatos — TrueType e PostScript — foram criados nos anos 1980 para resolver um problema de impressão e renderização em tela em sistemas operacionais. A web, quando chegou, herdou esses formatos de um contexto completamente diferente.
+
+O problema é que formatos de desktop não foram projetados para download. Um arquivo de fonte pode ter 200kb, 500kb ou mais — sem compressão, com dados para múltiplas resoluções, com suporte a centenas de glifos para diferentes idiomas. Isso funcionava bem quando a fonte ficava instalada no sistema; é um problema quando ela precisa ser transferida em cada visita a uma página.
+
+O segundo problema foi o controle. Foundries de tipografia — as empresas que criam e vendem fontes — não queriam que arquivos de fonte fossem simplesmente servidos e baixados por qualquer pessoa que visitasse um site. Fontes são propriedade intelectual com licenciamento específico. Esse conflito moldou diretamente a criação de alguns formatos, especialmente o EOT.
+
+O resultado dessa história é uma pilha de formatos que não surgiu de um design deliberado, mas de diferentes épocas, diferentes necessidades e diferentes disputas. Entender essa origem torna a lista muito menos arbitrária.
+
+![Linha do tempo dos formatos de fonte para web: TrueType e OpenType surgem como formatos de desktop nos anos 1990; EOT e SVG fonts representam a era IE e legado; WOFF, WOFF2 e Variable Fonts formam a camada web moderna a partir de 2010.](/images/2026-04-14-web-font-formats/Diagrama%201%20%C2%B7%20Linha%20do%20Tempo%20dos%20Formatos.png)
+
+---
+
+## Os formatos, um por um
+
+### TTF — TrueType Font
+
+O TrueType foi desenvolvido pela Apple no final dos anos 1980 como resposta ao PostScript da Adobe, e licenciado para a Microsoft no início dos anos 1990. É o formato de fonte mais difundido no mundo — praticamente todo sistema operacional moderno o renderiza nativamente.
+
+Para a web, o TTF funciona. Browsers modernos o suportam sem configuração especial. O problema não é compatibilidade — é tamanho. **O TTF não tem compressão embutida.** Um arquivo `.ttf` com cobertura latina típica facilmente chega a 100–300kb. Multiplicado por múltiplos pesos e estilos, isso se torna um problema real de performance.
+
+### OTF — OpenType Font
+
+O OpenType foi desenvolvido pela Microsoft e Adobe nos anos 1990, construído sobre o TrueType mas com suporte ao formato de curvas do PostScript. A diferença técnica mais relevante: o TrueType usa curvas quadráticas; o OpenType pode usar curvas cúbicas, mais precisas para geometrias complexas.
+
+**Para uso web, TTF e OTF são intercambiáveis:** mesmo suporte em browsers, mesmo comportamento de compressão (nenhum), mesmos trade-offs de tamanho. Onde o OTF se destaca é nas funcionalidades tipográficas: ligaduras, kerning avançado, glifos alternativos, small caps. Mas esses recursos existem independente do formato de container — WOFF2 também pode carregar um OTF internamente.
+
+### EOT — Embedded OpenType
+
+O EOT foi criado pela Microsoft em 1997 com dois objetivos: permitir o uso de fontes customizadas no Internet Explorer, e proteger os interesses das foundries através de uma camada de DRM que restringia o uso da fonte ao domínio declarado.
+
+É um formato proprietário da Microsoft, suportado exclusivamente pelo Internet Explorer. Quando o IE deixou de ser relevante, o EOT perdeu sua razão de existir.
+
+Se você está construindo um projeto hoje e não tem requisito explícito de suporte ao IE8 ou anterior, pode ignorar o EOT completamente. Ele aparece em tutoriais antigos porque durante anos foi a única forma de usar fontes customizadas em IE — contexto que já não existe.
+
+### WOFF — Web Open Font Format
+
+O WOFF foi o primeiro formato criado especificamente para a web, padronizado pelo W3C em 2012. Em vez de inventar um novo formato do zero, **o WOFF é essencialmente um container**: ele pega os dados de um TTF ou OTF existente, aplica compressão zlib (a mesma usada em arquivos `.gz`) e adiciona um cabeçalho com metadados — nome da fonte, informações de licenciamento, dados do fabricante.
+
+O resultado é um arquivo tipicamente **30–40% menor** que o TTF ou OTF equivalente. E o cabeçalho de metadados endereçou as preocupações das foundries: o WOFF foi projetado para ser um formato de distribuição web com rastreabilidade de origem.
+
+O suporte é amplo — inclui IE9+, o que fez o WOFF ser o padrão de facto durante boa parte dos anos 2010.
+
+### WOFF2
+
+O WOFF2, padronizado pelo W3C em 2018, segue a mesma lógica do WOFF mas troca a compressão zlib pelo **Brotli** — um algoritmo desenvolvido pelo Google, significativamente mais eficiente para dados de fontes.
+
+O ganho é substancial: WOFF2 é tipicamente **30% menor que WOFF** e **50–60% menor que TTF**. Para uma fonte que em TTF pesa 250kb, o equivalente WOFF2 pode ficar em torno de 100–110kb.
+
+O suporte em browsers modernos é de >96% globalmente. Chrome, Firefox, Safari, Edge — todos suportam WOFF2. O único contexto onde ele não funciona é o IE, que a própria Microsoft encerrou o suporte em 2022.
+
+### SVG Fonts
+
+Fontes SVG definem os glifos como caminhos dentro de um arquivo XML. Eram necessárias para o Safari em iOS versões anteriores à 4.2 (2010), antes que o suporte a TTF fosse adicionado.
+
+O Safari removeu o suporte a SVG fonts na versão 10 (2016). Firefox nunca implementou. O formato está tecnicamente morto. Se você encontrar `format('svg')` em algum `@font-face` hoje, está olhando para um tutorial de mais de dez anos atrás.
+
+### Variable Fonts
+
+Variable fonts não são um formato separado, mas uma extensão da especificação OpenType — chamada oficialmente de **OpenType Font Variations**. Ela pode ser implementada tanto em TTF quanto em WOFF2 (que é o container mais comum hoje).
+
+O conceito é diferente de tudo que vimos até aqui: em vez de um arquivo por estilo (Regular, Bold, Italic, SemiBold...), um único arquivo de variable font contém o **espaço contínuo de variações** da família. Você navega por esse espaço através de **eixos de variação**. Esse tópico merece atenção especial e tem uma seção dedicada mais adiante.
+
+---
+
+## O que muda na prática: tamanho e compressão
+
+Para tornar a diferença concreta, a tabela abaixo usa dados aproximados da fonte **Inter Regular** como referência:
+
+<table>
+  <thead>
+    <tr>
+      <th>Formato</th>
+      <th>Tamanho aproximado</th>
+      <th>Compressão</th>
+      <th>Redução em relação ao TTF</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>TTF</td>
+      <td>~260kb</td>
+      <td>Nenhuma</td>
+      <td>—</td>
+    </tr>
+    <tr>
+      <td>WOFF</td>
+      <td>~150kb</td>
+      <td>zlib</td>
+      <td>~42% menor</td>
+    </tr>
+    <tr>
+      <td>WOFF2</td>
+      <td>~100kb</td>
+      <td>Brotli</td>
+      <td>~62% menor</td>
+    </tr>
+  </tbody>
+</table>
+
+Esses números variam por família e cobertura de glifos — fontes com suporte a alfabetos não-latinos (cirílico, árabe, CJK) podem ser significativamente maiores. Mas a proporção relativa entre os formatos é consistente.
+
+Para um projeto que serve três pesos de uma fonte (Regular, Medium, Bold), a diferença entre servir TTF e WOFF2 pode facilmente passar de 400kb no total carregado. Isso tem impacto direto no tempo de renderização do texto na primeira visita.
+
+![Comparação de tamanho entre formatos para o mesmo arquivo de fonte: TTF sem compressão (260kb), WOFF com compressão zlib (150kb, 42% menor), WOFF2 com compressão Brotli (100kb, 62% menor).](/images/2026-04-14-web-font-formats/Diagrama%202%20%C2%B7%20Compara%C3%A7%C3%A3o%20de%20Tamanho%20por%20Formato.png)
+
+---
+
+## Como o browser decide qual formato usar
+
+Quando você declara um `@font-face` com múltiplas entradas em `src`, o browser **lê de cima para baixo e usa o primeiro formato que ele suporta**. A ordem que você define determina a prioridade.
+
+```css
+@font-face {
+  font-family: 'MinhaFonte';
+  src:
+    url('/assets/fonts/minhafonte.woff2') format('woff2'),
+    url('/assets/fonts/minhafonte.woff') format('woff'),
+    url('/assets/fonts/minhafonte.ttf') format('truetype');
+}
+```
+
+Um browser moderno encontra o WOFF2, suporta o formato, e baixa esse arquivo — ignora os outros completamente. Um browser mais antigo que não suporta WOFF2 tenta o WOFF. Se tampouco suportar WOFF, cai no TTF.
+
+Alguns pontos importantes sobre esse mecanismo:
+
+**O `format()` é uma dica, não uma instrução.** A string dentro de `format()` permite que o browser verifique se suporta o formato _antes_ de fazer o download. Sem ela, o browser tentaria baixar o arquivo para descobrir o formato — uma requisição desnecessária em caso de formato não suportado.
+
+**A ordem convencional é: WOFF2, depois WOFF, depois TTF.** O browser usa o primeiro que funciona, então colocar TTF antes de WOFF2 faria browsers modernos baixar o arquivo maior.
+
+**Cada entrada é uma URL separada.** O browser só faz o download do arquivo que vai usar. Se suporta WOFF2, não baixa o WOFF nem o TTF — eles ficam declarados mas nunca requisitados.
+
+![Cadeia de fallback do @font-face: browser verifica suporte a WOFF2; se suporta, baixa o arquivo e renderiza; se não, testa WOFF; se não, testa TTF; se nenhum funciona, usa fonte de sistema.](/images/2026-04-14-web-font-formats/Diagrama%203%20%C2%B7%20Cadeia%20de%20Fallback%20do%20%40font-face.png)
+
+---
+
+## Suporte a browsers hoje
+
+<table>
+  <thead>
+    <tr>
+      <th>Formato</th>
+      <th>Chrome</th>
+      <th>Firefox</th>
+      <th>Safari</th>
+      <th>Edge</th>
+      <th>IE</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>WOFF2</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>❌</td>
+    </tr>
+    <tr>
+      <td>WOFF</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅ IE9+</td>
+    </tr>
+    <tr>
+      <td>TTF / OTF</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅ IE9+</td>
+    </tr>
+    <tr>
+      <td>EOT</td>
+      <td>❌</td>
+      <td>❌</td>
+      <td>❌</td>
+      <td>❌</td>
+      <td>✅ apenas</td>
+    </tr>
+    <tr>
+      <td>SVG Fonts</td>
+      <td>❌</td>
+      <td>❌</td>
+      <td>❌</td>
+      <td>❌</td>
+      <td>❌</td>
+    </tr>
+    <tr>
+      <td>Variable Fonts</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>❌</td>
+    </tr>
+  </tbody>
+</table>
+
+A conclusão prática: se você não precisa suportar IE, WOFF2 cobre tudo. Se precisar cobrir IE9 ou superior, WOFF2 + WOFF basta. EOT só entra no jogo para IE8 e anteriores.
+
+---
+
+## Usando fontes em projetos Angular
+
+Há três abordagens principais, cada uma com trade-offs diferentes.
+
+### 1. Google Fonts via `<link>`
+
+A forma mais simples: incluir o link gerado pelo Google Fonts no `index.html`.
+
+```html
+<!-- index.html -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap"
+  rel="stylesheet"
+/>
+```
+
+O Google Fonts serve automaticamente WOFF2 para browsers modernos e faz subsetting da fonte por idioma. É conveniente e bem otimizado.
+
+O que você abre mão: dependência de um serviço externo (risco em ambientes offline ou com restrições de rede), e a fonte sendo servida de um domínio diferente — os `preconnect` mitigam parcialmente a latência adicional de DNS. Em contextos regulados, há também implicações de privacidade: requests ao Google Fonts expõem o IP do usuário.
+
+### 2. Fontes locais via `assets`
+
+Para controle total, sirva a fonte do próprio projeto.
+
+**a) Coloque os arquivos na pasta de assets:**
+
+```
+src/
+  assets/
+    fonts/
+      inter-regular.woff2
+      inter-medium.woff2
+      inter-bold.woff2
+```
+
+**b) Garanta que o Angular inclua a pasta no build.** No `angular.json`, dentro de `architect > build > options > assets`:
+
+```json
+"assets": [
+  "src/favicon.ico",
+  "src/assets"
+]
+```
+
+Se a pasta `src/assets` já está incluída (como no projeto gerado pelo CLI), os arquivos de fonte são incluídos automaticamente.
+
+**c) Declare o `@font-face` no `styles.scss` global:**
+
+```scss
+// styles.scss
+@font-face {
+  font-family: 'Inter';
+  src: url('/assets/fonts/inter-regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('/assets/fonts/inter-medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('/assets/fonts/inter-bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+```
+
+Declarar cada peso em um `@font-face` separado com `font-weight` correspondente permite que o browser use `font-weight: 500` no CSS e saiba qual arquivo baixar — sem precisar referenciar o arquivo diretamente no componente.
+
+### 3. `font-display` e o comportamento de carregamento
+
+O `font-display` controla o que acontece com o texto enquanto a fonte ainda está sendo baixada. Dois comportamentos são relevantes entender:
+
+- **FOIT (Flash of Invisible Text)**: o texto fica invisível até a fonte carregar
+- **FOUT (Flash of Unstyled Text)**: o texto aparece imediatamente com uma fonte de sistema e troca quando a customizada carrega
+
+<table>
+  <thead>
+    <tr>
+      <th>Valor</th>
+      <th>Comportamento</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <code>auto</code>
+      </td>
+      <td>Padrão do browser — geralmente FOIT</td>
+    </tr>
+    <tr>
+      <td>
+        <code>block</code>
+      </td>
+      <td>FOIT com bloqueio de ~3s, depois fallback</td>
+    </tr>
+    <tr>
+      <td>
+        <code>swap</code>
+      </td>
+      <td>FOUT imediato — texto sempre visível, troca quando carrega</td>
+    </tr>
+    <tr>
+      <td>
+        <code>fallback</code>
+      </td>
+      <td>FOIT curto (~100ms), depois fallback sem segunda tentativa</td>
+    </tr>
+    <tr>
+      <td>
+        <code>optional</code>
+      </td>
+      <td>Usa a fonte só se já estiver em cache ou carregar muito rápido</td>
+    </tr>
+  </tbody>
+</table>
+
+Para a maioria dos casos, `font-display: swap` é o valor mais recomendado: o texto é sempre visível, e a fonte customizada entra quando disponível. A troca visual pode ser perceptível, mas o conteúdo nunca fica invisível.
+
+Para fontes críticas onde a diferença visual entre a fonte de sistema e a customizada é grande — e a troca abrupta seria confusa — `fallback` pode ser mais adequado: dá uma chance curta para a fonte aparecer sem flash, mas não tenta indefinidamente.
+
+![Pipeline de carregamento de fontes no Angular: browser requisita HTML, depois styles.css com @font-face declarado, identifica o formato WOFF2, enquanto font-display swap mantém o texto visível com fonte de sistema, e ao final a fonte customizada é carregada e o texto re-renderizado.](/images/2026-04-14-web-font-formats/Diagrama%204%20%C2%B7%20Pipeline%20de%20Carregamento%20de%20Fontes.png)
+
+---
+
+## Variable fonts: quando uma fonte substitui várias
+
+Variable fonts fazem mais sentido quando você usa múltiplos pesos ou estilos de uma mesma família. Se o design usa apenas Regular e Bold, o ganho é menor — você estaria pagando pelo arquivo variável potencialmente maior em vez de dois arquivos estáticos pequenos.
+
+Mas a partir de três pesos, a equação muda. Uma família com cinco pesos estáticos em WOFF2 pode facilmente somar 600kb. O equivalente em variable font pode custar 150–200kb — um arquivo só, para toda a família.
+
+Além do tamanho, há outro argumento: **interpolação contínua**. Com fontes estáticas, você tem `font-weight: 400` e `font-weight: 700` — dois pontos fixos. Com variable fonts, você pode usar qualquer valor dentro do eixo: `font-weight: 450`, `font-weight: 525`. Isso abre possibilidades tipográficas que simplesmente não existem com fontes estáticas — ajuste fino de peso por contexto, hierarquia visual mais sutil, e até animações de peso via CSS.
+
+Os eixos de variação registrados mais comuns são:
+
+<table>
+  <thead>
+    <tr>
+      <th>Eixo</th>
+      <th>Tag CSS</th>
+      <th>Descrição</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Weight</td>
+      <td>
+        <code>wght</code>
+      </td>
+      <td>Espessura do traço</td>
+    </tr>
+    <tr>
+      <td>Width</td>
+      <td>
+        <code>wdth</code>
+      </td>
+      <td>Largura dos caracteres</td>
+    </tr>
+    <tr>
+      <td>Italic</td>
+      <td>
+        <code>ital</code>
+      </td>
+      <td>Ativação do estilo itálico</td>
+    </tr>
+    <tr>
+      <td>Slant</td>
+      <td>
+        <code>slnt</code>
+      </td>
+      <td>Inclinação do texto</td>
+    </tr>
+    <tr>
+      <td>Optical Size</td>
+      <td>
+        <code>opsz</code>
+      </td>
+      <td>Ajuste visual para tamanhos diferentes</td>
+    </tr>
+  </tbody>
+</table>
+
+Além dos eixos registrados, foundries podem criar eixos customizados com tags de quatro letras maiúsculas — como `GRAD` (grade) na família Inter.
+
+O uso em CSS é feito via `font-variation-settings` ou, para os eixos padrão, pelos próprios atributos convencionais:
+
+```css
+/* Declaração — note o range em font-weight */
+@font-face {
+  font-family: 'Inter Variable';
+  src: url('/assets/fonts/inter-variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Uso convencional — o browser mapeia para o eixo wght automaticamente */
+.title {
+  font-weight: 700;
+}
+
+/* Controle fino com font-variation-settings */
+.label {
+  font-variation-settings: 'wght' 520;
+}
+
+/* Animação de peso — impossível com fontes estáticas */
+@keyframes weight-pulse {
+  from {
+    font-variation-settings: 'wght' 300;
+  }
+  to {
+    font-variation-settings: 'wght' 700;
+  }
+}
+```
+
+O detalhe importante está em `font-weight: 100 900`: declarar um _range_ em vez de um valor único sinaliza ao browser que esse arquivo cobre toda a escala de pesos, não apenas um ponto específico.
+
+O suporte a variable fonts é excelente em todos os browsers modernos. A única ressalva é que nem toda família tipográfica tem uma versão variable disponível. O [Google Fonts](https://fonts.google.com/?vfonly=true) tem um filtro específico para variable fonts — famílias como Inter, Roboto Flex, Source Sans 3, Recursive e Outfit têm versões variáveis bem mantidas.
+
+---
+
+## O que usar hoje — recomendação direta
+
+**Projeto novo, sem requisito de IE:** use apenas WOFF2. Um formato, sem fallback. Se o browser não suporta WOFF2, é tão antigo que provavelmente tem outros problemas de compatibilidade mais graves.
+
+**Precisa cobrir IE9–IE11:** adicione WOFF como fallback. A declaração fica `woff2, woff`. TTF só entra se você tiver evidência de que seu público usa browsers que não suportam WOFF.
+
+**IE8 ou anterior:** adicione EOT. Mas avalie honestamente se esse é um requisito real — o IE8 tem market share global abaixo de 0,1% e a Microsoft encerrou o suporte há mais de uma década.
+
+**Usando três ou mais pesos de uma família:** verifique se existe versão variable font disponível. O ganho de tamanho e a flexibilidade tipográfica justificam na maioria dos casos.
+
+**Google Fonts vs self-hosted:** se performance é prioridade e você tem controle sobre o deploy, self-hosted com WOFF2 e `font-display: swap` é mais previsível. Google Fonts é adequado para projetos onde a conveniência tem mais peso e privacidade não é uma restrição.
+
+---
+
+## Resumo e conclusão
+
+Fontes para web têm múltiplos formatos porque nasceram em contextos diferentes: desktop, proteção de IP, compatibilidade com IE, otimização para transferência via rede. Cada formato foi uma resposta a um problema real do seu tempo.
+
+Hoje, o mapa é mais simples: **WOFF2 é o padrão.** Ele combina compressão Brotli eficiente, suporte universal em browsers modernos e o mesmo modelo de metadados do WOFF. Variable fonts, distribuídos como WOFF2, são a evolução natural para projetos que usam famílias tipográficas com múltiplos pesos.
+
+O que muda quando você entende esses formatos não é só a declaração do `@font-face` — é a capacidade de tomar decisões conscientes sobre trade-offs de performance, suporte a browsers e complexidade do setup. Um arquivo `.ttf` em bundle de produção virou um sinal de alerta. Um `@font-face` sem `font-display` virou uma pergunta sobre comportamento de carregamento. Essas são as perguntas certas.
+
+---
+
+## Questões de compreensão
+
+1. Por que servir um arquivo `.ttf` diretamente em produção é geralmente uma escolha subótima, mesmo que todos os browsers modernos o suportem?
+
+2. Qual é a diferença técnica fundamental entre WOFF e WOFF2? O comportamento do `@font-face` muda entre os dois do ponto de vista do desenvolvedor?
+
+3. Em um `@font-face` com `src: url('fonte.woff2') format('woff2'), url('fonte.woff') format('woff')`, o que acontece se o browser suporta WOFF2 mas o arquivo `.woff2` retorna 404? Ele cai no WOFF automaticamente?
+
+4. Um designer pediu para usar seis pesos de uma mesma família (100, 200, 300, 400, 600, 800). Como você avaliaria se vale a pena usar uma variable font em vez de seis arquivos estáticos?
+
+5. Qual o impacto de `font-display: block` versus `font-display: swap` na experiência do usuário? Em que situação você escolheria `block`?
+
+---
+
+## Referências
+
+- [W3C — WOFF2 Specification](https://www.w3.org/TR/WOFF2/)
+- [MDN — @font-face](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face)
+- [MDN — font-display](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display)
+- [MDN — Variable fonts guide](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_fonts/Variable_fonts_guide)
+- [Google Fonts — Variable Fonts filter](https://fonts.google.com/?vfonly=true)
+- [Can I Use — WOFF2](https://caniuse.com/woff2)
+- [web.dev — Reduce WebFont Size](https://web.dev/articles/reduce-webfont-size)
+- [web.dev — Best practices for fonts](https://web.dev/articles/font-best-practices)
+- [CSS-Tricks — Variable Fonts Guide](https://css-tricks.com/one-file-many-options-using-variable-fonts-on-the-web/)
