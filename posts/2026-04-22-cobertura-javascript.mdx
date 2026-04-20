@@ -5,7 +5,7 @@ author: 'Artur Quirino'
 publishedAt: '2026'
 date: '2026-04-20'
 tags: [angular, vitest, testing, coverage, v8, istanbul, javascript]
-image: /covers/2026-04-22-cobertura-javascript.png
+image: /covers/2026-04-20-cobertura-javascript.png
 ---
 
 ## O problema
@@ -60,16 +60,18 @@ A métrica mais estrita, e geralmente a mais reveladora, é **branch coverage**.
 
 ```typescript
 function greet(user?: User) {
-  if (user) return `Hello, ${user.name}`;
-  return 'Hello, stranger';
+  const name = user ? user.name : 'stranger';
+  return `Hello, ${name}`;
 }
 ```
 
-Se o teste chama `greet({ name: 'Ana' })`, tanto line coverage quanto statement coverage reportam 100% — todas as linhas e todos os statements executaram. Mas branch coverage reporta 50%. Existem dois caminhos no `if`, e o teste só cobriu um deles. O caminho "usuário indefinido" nunca foi exercitado.
+Se o teste chama `greet({ name: 'Ana' })`, tanto line coverage quanto statement coverage reportam 100% — as duas linhas executam, e os dois statements (a atribuição de `name` e o `return`) também. Mas branch coverage reporta 50%: o operador ternário cria dois caminhos, e o teste só exercitou o caminho em que `user` é truthy. O caminho `user` falsy nunca foi tomado.
 
-Essa distinção importa porque, na prática, bugs vivem nos caminhos não tomados. Branch coverage captura isso; line coverage, não.
+É diferente do que aconteceria se a função usasse `if` com dois `return`s separados. Nesse caso, o `return` do `else` nunca executaria, e line coverage também reportaria o problema — porque sobraria uma linha não executada. A versão com ternário é didaticamente mais clara justamente por isolar o efeito: toda a execução está nas mesmas duas linhas, e o único sinal do caminho não testado está em branch coverage.
 
-![Diagrama 1 — As quatro métricas em um snippet: a função `greet` com anotações sobre statements, branches, functions e lines; line coverage 100% pode coexistir com branch coverage 50%.](/images/2026-04-22-cobertura-javascript/Diagrama%201%20%C2%B7%20As%20quatro%20m%C3%A9tricas.png)
+Essa distinção importa porque, na prática, bugs vivem nos caminhos não tomados. Branch coverage captura esses casos mesmo quando o código-fonte comprime múltiplos caminhos em uma única linha; line coverage, não.
+
+![As quatro métricas de cobertura (statements, branches, functions, lines) aplicadas ao snippet da função `greet`: line e statement em 100% podem coexistir com branch em 50% porque o ternário concentra dois caminhos em uma linha.](/images/2026-04-22-cobertura-javascript/Diagrama%201%20%C2%B7%20As%20quatro%20m%C3%A9tricas.png)
 
 Qualquer ferramenta de cobertura, por baixo, precisa rastrear quando cada um desses elementos foi executado. É aí que os paradigmas divergem.
 
@@ -89,7 +91,7 @@ Existem dois caminhos.
 
 É como percorrer a floresta com um GPS. As árvores continuam intocadas; o rastro é gerado pelo observador, não pelas marcas deixadas.
 
-![Diagrama 2 — Os dois paradigmas lado a lado: instrumentação (A) versus observação do runtime com profiler (B); onde a informação nasce — no código em A, no motor em B.](/images/2026-04-22-cobertura-javascript/Diagrama%202%20%C2%B7%20Dois%20paradigmas.png)
+![Dois paradigmas de cobertura lado a lado: instrumentação pré-execução (AST → código instrumentado → contadores → relatório) versus observação do runtime (build → execução com profiler → dados do V8 → remapping → relatório).](/images/2026-04-22-cobertura-javascript/Diagrama%202%20%C2%B7%20Dois%20paradigmas.png)
 
 Cada paradigma tem consequências muito diferentes. Não são só implementações diferentes do mesmo resultado — são escolhas arquiteturais que determinam o que a ferramenta consegue fazer.
 
@@ -104,28 +106,28 @@ Por baixo, Istanbul é, antes de qualquer outra coisa, um **transformador de có
 O código que você escreve:
 
 ```typescript
-function greet(user?: User) {
-  if (user) {
-    return `Hello, ${user.name}`;
+function classify(value: unknown) {
+  if (value == null) {
+    return 'empty';
   }
-  return 'Hello, stranger';
+  return 'filled';
 }
 ```
 
 Vira, depois da instrumentação, algo conceitualmente parecido com isto (simplificado para legibilidade):
 
 ```typescript
-function greet(user) {
-  cov[file].f[0]++; // função greet foi chamada
+function classify(value) {
+  cov[file].f[0]++; // função classify foi chamada
   cov[file].s[0]++; // statement 0: o if
-  if (user) {
+  if (value == null) {
     cov[file].b[0][0]++; // branch: caminho "truthy"
     cov[file].s[1]++; // statement 1
-    return `Hello, ${user.name}`;
+    return 'empty';
   }
   cov[file].b[0][1]++; // branch: caminho "falsy"
   cov[file].s[2]++; // statement 2
-  return 'Hello, stranger';
+  return 'filled';
 }
 ```
 
@@ -205,7 +207,7 @@ A diferença é sutil na descrição mas crítica no resultado. A enumeração d
 
 A documentação oficial do Vitest é explícita sobre a consequência: **os relatórios do provider V8 passaram a ser idênticos aos do Istanbul**. No Vitest 4, esse método deixou de ser opcional e se tornou o único suportado — a flag `experimentalAstAwareRemapping` foi removida porque agora é o comportamento padrão.
 
-![Diagrama 3 — V8 coverage antes e depois do AST remapping: v8-to-istanbul (pré-3.2) versus ast-v8-to-istanbul com enumeração orientada ao AST (3.2+), inversão do sentido do raciocínio.](/images/2026-04-22-cobertura-javascript/Diagrama%203%20%C2%B7%20AST%20remapping.png)
+![V8 coverage antes e depois do AST remapping: pré-3.2, byte ranges e v8-to-istanbul via source maps; a partir do 3.2, enumeração a partir do AST do código-fonte alinhada aos ranges do V8 (`ast-v8-to-istanbul`) para paridade com Istanbul.](/images/2026-04-22-cobertura-javascript/Diagrama%203%20%C2%B7%20AST%20remapping.png)
 
 O trade-off que justificava escolher Istanbul por precisão simplesmente deixou de existir nos contextos onde o V8 funciona.
 
